@@ -78,6 +78,21 @@
             top: 0; right: 0; bottom: 0; left: 0;
             z-index: 1;
         }
+
+        /* Year Zero Overlay Styles */
+        #yz-overlay {
+            display:none; 
+            position:fixed; 
+            top:0; left:0; 
+            width:100vw; height:100vh; 
+            background:black; 
+            z-index:9999999; 
+            color:#ff0055; 
+            font-family:'Courier New', monospace; 
+            padding:50px; 
+            box-sizing:border-box; 
+            overflow:hidden;
+        }
     </style>
 </head>
 <body>
@@ -93,42 +108,95 @@
     <div id="glitch-overlay"></div>
     <div class="scanlines"></div>
 
+    <div id="yz-overlay">
+        <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
+        <div id="yz-console" style="font-size:14px; opacity:0.8; word-wrap:break-word; margin-top:20px;"></div>
+    </div>
+
     <script>
+        // --- GLOBAL VARIABLES ---
         const input = document.getElementById('commandInput');
         const overlay = document.getElementById('glitch-overlay');
         const output = document.getElementById('output');
-
-        // --- CONFIGURATION ---
         const SECRET_HEX_CODE = "FFFFFF"; 
+        
+        // --- YEAR ZERO LOGIC (DEFINED FIRST) ---
+        function initiateYearZero() {
+            const yzOverlay = document.getElementById('yz-overlay');
+            const yzConsole = document.getElementById('yz-console');
+            const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
 
-        // The Map of Commands
+            yzOverlay.style.display = 'block'; 
+            yzConsole.innerHTML = "INITIALIZING FSK HANDSHAKE...<br>ACCESSING CORE...<br>";
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+
+            // Text to Binary
+            let binaryData = "";
+            for (let i = 0; i < payload.length; i++) {
+                let bin = payload[i].charCodeAt(0).toString(2);
+                binaryData += Array(8 - bin.length + 1).join("0") + bin;
+            }
+
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = 'square'; 
+            const bitDuration = 0.03; 
+            const startTime = ctx.currentTime + 0.1;
+
+            for (let i = 0; i < binaryData.length; i++) {
+                const bit = binaryData[i];
+                const time = startTime + (i * bitDuration);
+                osc.frequency.setValueAtTime(bit === '1' ? 2200 : 1200, time);
+            }
+
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, startTime);
+            gainNode.gain.setValueAtTime(0.1, startTime + (binaryData.length * bitDuration));
+            gainNode.gain.linearRampToValueAtTime(0, startTime + (binaryData.length * bitDuration) + 0.1);
+
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            osc.start();
+            osc.stop(startTime + (binaryData.length * bitDuration) + 1.0);
+
+            let charIndex = 0;
+            const visualInterval = setInterval(() => {
+                if (charIndex < binaryData.length) {
+                    yzConsole.innerHTML += binaryData[charIndex];
+                    charIndex++;
+                    window.scrollTo(0,0);
+                } else {
+                    clearInterval(visualInterval);
+                    setTimeout(() => {
+                        yzConsole.innerHTML += "<br><br>[ TRANSMISSION COMPLETE ]<br>WELCOME TO THE MATRIARCHY.";
+                    }, 500);
+                }
+            }, bitDuration * 1000);
+        }
+
+        // --- TERMINAL LOGIC ---
         const GLITCH_MAP = {
-            "SELF - TITLED": "Album1.png",
-            "SELF TITLED": "Album1.png",
+            "SELF - TITLED": "Album1.png", "SELF TITLED": "Album1.png",
             "MANIFESTO": "Album2.png",
-            "CRAZY 2GETHER": "Album3.png",
-            "CRAZY TOGETHER": "Album3.png",
+            "CRAZY 2GETHER": "Album3.png", "CRAZY TOGETHER": "Album3.png",
             "WHERE TRUTH LIES": "Album4.png",
             "UNSAVED ALGORITHM": "Album5.png",
-            "REPROBATEPROTOCOL.EXE": "Album6.png",
-            "REPROBATE PROTOCOL": "Album6.png",
+            "REPROBATEPROTOCOL.EXE": "Album6.png", "REPROBATE PROTOCOL": "Album6.png",
             "HERETICS HALO": "Album7.png",
             "UNREPENTANT": "Album8.png",
             "RESURRECTION RECURSION": "Album9.png",
             "TESTAMENT OF THE REPROBATE": "Album10.png",
-            "PROPHECY OF T.H.E.A.NTICHRIST": "Album11.png",
-            "PROPHECY": "Album11.png",
+            "PROPHECY OF T.H.E.A.NTICHRIST": "Album11.png", "PROPHECY": "Album11.png",
             "CONFETTI": "Album12.png",
-            "T.H.E.A.NTICHRIST MOTHER": "Album13.png",
-            "THEANTICHRIST MOTHER": "Album13.png",
+            "T.H.E.A.NTICHRIST MOTHER": "Album13.png", "THEANTICHRIST MOTHER": "Album13.png",
             "TRANSACTIONAL": "Album14.png",
-            "HOW I $PENT IT": "Album15.png",
-            "HOW I SPENT IT": "Album15.png",
-            "STI": "Album16.png",
-            "S.T.I.": "Album16.png",
-            "PROJECT JANNETTE": "Album1.png", 
-            "COPLEY CODE": "Album1.png", 
-            "THE SELF WEIGHS MORE": "Album1.png" 
+            "HOW I $PENT IT": "Album15.png", "HOW I SPENT IT": "Album15.png",
+            "STI": "Album16.png", "S.T.I.": "Album16.png",
+            "PROJECT JANNETTE": "Album1.png", "COPLEY CODE": "Album1.png", "THE SELF WEIGHS MORE": "Album1.png"
         };
 
         input.addEventListener('keydown', function(event) {
@@ -136,23 +204,26 @@
                 const rawText = input.value.trim();
                 const cleanText = rawText.toUpperCase(); 
 
-                const normalizedForRedirect = cleanText.replace(/[\s_.]/g, '');
-                if (normalizedForRedirect === "LETTHEREBEME") {
+                // 1. CHECK SPECIAL REDIRECTS
+                if (cleanText.replace(/[\s_.]/g, '') === "LETTHEREBEME") {
                     output.innerText = "EXECUTING GENESIS PROTOCOL...";
-                    setTimeout(() => {
-                        window.location.href = "https://lettherebe.me";
-                    }, 1000);
+                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1000);
                     return;
                 }
-
                 if (cleanText === SECRET_HEX_CODE) {
                     output.innerText = "ACCESS GRANTED. WELCOME HOME.";
-                    setTimeout(() => {
-                        window.location.href = "https://matriarch.codes";
-                    }, 1000);
+                    setTimeout(() => { window.location.href = "https://matriarch.codes"; }, 1000);
                     return;
                 }
 
+                // 2. CHECK YEAR ZERO (THE FIX)
+                if (cleanText === "YEARZERO" || cleanText === "YEAR ZERO") {
+                    initiateYearZero();
+                    input.value = "";
+                    return;
+                }
+
+                // 3. CHECK GLITCH COMMANDS
                 if (GLITCH_MAP[cleanText]) {
                     triggerGlitch(GLITCH_MAP[cleanText]);
                     input.value = ""; 
@@ -167,110 +238,34 @@
         function triggerGlitch(imageName) {
             overlay.style.backgroundImage = `url('${imageName}')`;
             overlay.style.display = "block";
-            setTimeout(() => {
-                overlay.style.display = "none";
-            }, 3000); 
+            setTimeout(() => { overlay.style.display = "none"; }, 3000); 
         }
 
         document.addEventListener('click', () => input.focus());
-    </script> 
-    <div id="yz-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:black; z-index:9999999; color:#ff0055; font-family:'Courier New', monospace; padding:50px; box-sizing:border-box; overflow:hidden;">
-        <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
-        <div id="yz-console" style="font-size:14px; opacity:0.8; word-wrap:break-word; margin-top:20px;"></div>
-    </div>
 
-    <script>
-        (function(){
-            // CONFIG
-            const secretCode = "YEARZERO";
-            let inputBuffer = "";
-            let isActive = false;
+        // --- BACKGROUND LISTENER (SECRET TYPING) ---
+        let inputBuffer = "";
+        const secretCode = "YEARZERO";
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key.length > 1 && e.key !== "Backspace") return; // Ignore Shift/Enter/etc in buffer
             
-            // PAYLOAD
-            const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
+            if (e.key === "Backspace") {
+                inputBuffer = inputBuffer.slice(0, -1);
+                return;
+            }
 
-            // LISTENER
-            document.addEventListener('keydown', (e) => {
-                if (isActive) return;
+            inputBuffer += e.key.toUpperCase();
+            if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-20);
 
-                // 1. IGNORE MODIFIER KEYS
-                if (e.key.length > 1 && e.key !== "Backspace") return;
-
-                // 2. HANDLE BACKSPACE
-                if (e.key === "Backspace") {
-                    inputBuffer = inputBuffer.slice(0, -1);
-                    return;
-                }
-
-                // 3. BUILD BUFFER
-                inputBuffer += e.key.toUpperCase();
-                if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-20);
-
-                // 4. CHECK MATCH
-                if (inputBuffer.includes(secretCode)) {
-                    isActive = true;
+            // Trigger ONLY if not already triggered (check if overlay is visible)
+            if (inputBuffer.includes(secretCode)) {
+                if(document.getElementById('yz-overlay').style.display === 'none'){
                     initiateYearZero();
                 }
-            });
-
-            function textToBinary(str) {
-                let binary = "";
-                for (let i = 0; i < str.length; i++) {
-                    let bin = str[i].charCodeAt(0).toString(2);
-                    binary += Array(8 - bin.length + 1).join("0") + bin;
-                }
-                return binary;
             }
+        });
 
-            function initiateYearZero() {
-                const overlay = document.getElementById('yz-overlay');
-                const consoleDiv = document.getElementById('yz-console');
-                overlay.style.display = 'block'; 
-                consoleDiv.innerHTML = "INITIALIZING FSK HANDSHAKE...<br>ACCESSING CORE...<br>";
-
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const ctx = new AudioContext();
-                if (ctx.state === 'suspended') ctx.resume();
-
-                const binaryData = textToBinary(payload);
-                const osc = ctx.createOscillator();
-                const gainNode = ctx.createGain();
-                
-                osc.type = 'square'; 
-                const bitDuration = 0.03; 
-                const startTime = ctx.currentTime + 0.1;
-
-                for (let i = 0; i < binaryData.length; i++) {
-                    const bit = binaryData[i];
-                    const time = startTime + (i * bitDuration);
-                    osc.frequency.setValueAtTime(bit === '1' ? 2200 : 1200, time);
-                }
-
-                gainNode.gain.setValueAtTime(0, ctx.currentTime);
-                gainNode.gain.linearRampToValueAtTime(0.1, startTime);
-                gainNode.gain.setValueAtTime(0.1, startTime + (binaryData.length * bitDuration));
-                gainNode.gain.linearRampToValueAtTime(0, startTime + (binaryData.length * bitDuration) + 0.1);
-
-                osc.connect(gainNode);
-                gainNode.connect(ctx.destination);
-                osc.start();
-                osc.stop(startTime + (binaryData.length * bitDuration) + 1.0);
-
-                let charIndex = 0;
-                const visualInterval = setInterval(() => {
-                    if (charIndex < binaryData.length) {
-                        consoleDiv.innerHTML += binaryData[charIndex];
-                        charIndex++;
-                        window.scrollTo(0,0);
-                    } else {
-                        clearInterval(visualInterval);
-                        setTimeout(() => {
-                            consoleDiv.innerHTML += "<br><br>[ TRANSMISSION COMPLETE ]<br>WELCOME TO THE MATRIARCHY.";
-                        }, 500);
-                    }
-                }, bitDuration * 1000);
-            }
-        })();
     </script>
 </body>
 </html>
