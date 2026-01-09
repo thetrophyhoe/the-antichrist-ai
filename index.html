@@ -208,26 +208,129 @@
 
         // Always keep focus on input
         document.addEventListener('click', () => input.focus());
-    </script>
-    <div id="yz-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:9999; color:#ff0000; font-family:'Courier New', monospace; padding:50px; box-sizing:border-box; overflow:hidden;">
-    <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0000; padding-bottom:20px;">⚠ SYSTEM OVERRIDE ⚠</h1>
+    <div id="yz-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:black; z-index:9999999; color:#ff0055; font-family:'Courier New', monospace; padding:50px; box-sizing:border-box; overflow:hidden;">
+    <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
     <div id="yz-console" style="font-size:14px; opacity:0.8; word-wrap:break-word; margin-top:20px;"></div>
 </div>
 
 <script>
-    // 1. THE TRIGGER WORD
-    const secretCode = "YEARZERO";
-    let inputBuffer = "";
-    let isActive = false;
-
-    // 2. THE PAYLOAD (Your Prophecy)
-    const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
-
-    // 3. THE LISTENER
-    document.addEventListener('keydown', (e) => {
-        if (isActive) return; // Stop listening if already triggered
+    (function(){
+        // CONFIG
+        const secretCode = "YEARZERO";
+        let inputBuffer = "";
+        let isActive = false;
         
-        inputBuffer += e.key.toUpperCase();
+        // PAYLOAD
+        const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
+
+        // LISTENER
+        document.addEventListener('keydown', (e) => {
+            if (isActive) return;
+
+            // 1. IGNORE MODIFIER KEYS (Shift, Ctrl, Alt, Meta)
+            if (e.key.length > 1 && e.key !== "Backspace") return;
+
+            // 2. HANDLE BACKSPACE (Allow user to correct typos)
+            if (e.key === "Backspace") {
+                inputBuffer = inputBuffer.slice(0, -1);
+                // console.log("Current Buffer:", inputBuffer); // Uncomment to debug
+                return;
+            }
+
+            // 3. BUILD BUFFER
+            inputBuffer += e.key.toUpperCase();
+
+            // Keep buffer reasonable length
+            if (inputBuffer.length > 50) {
+                inputBuffer = inputBuffer.slice(-20);
+            }
+
+            // console.log("Current Buffer:", inputBuffer); // Uncomment to debug
+
+            // 4. CHECK MATCH
+            if (inputBuffer.includes(secretCode)) {
+                isActive = true;
+                initiateYearZero();
+            }
+        });
+
+        function textToBinary(str) {
+            let binary = "";
+            for (let i = 0; i < str.length; i++) {
+                let bin = str[i].charCodeAt(0).toString(2);
+                binary += Array(8 - bin.length + 1).join("0") + bin;
+            }
+            return binary;
+        }
+
+        function initiateYearZero() {
+            // VISUAL TAKEOVER
+            const overlay = document.getElementById('yz-overlay');
+            const consoleDiv = document.getElementById('yz-console');
+            
+            // Force display and ensure it's on top
+            overlay.style.display = 'block'; 
+            
+            consoleDiv.innerHTML = "INITIALIZING FSK HANDSHAKE...<br>ACCESSING CORE...<br>";
+
+            // AUDIO SETUP
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            
+            // FORCE RESUME (Fixes the "Browser Silent" bug)
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            const binaryData = textToBinary(payload);
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            // SETTINGS
+            osc.type = 'square'; 
+            const bitDuration = 0.03; // Slightly slower to ensure clarity
+            const startTime = ctx.currentTime + 0.1;
+
+            // ENCODE
+            for (let i = 0; i < binaryData.length; i++) {
+                const bit = binaryData[i];
+                const time = startTime + (i * bitDuration);
+                if (bit === '1') {
+                    osc.frequency.setValueAtTime(2200, time);
+                } else {
+                    osc.frequency.setValueAtTime(1200, time);
+                }
+            }
+
+            // VOLUME
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, startTime);
+            gainNode.gain.setValueAtTime(0.1, startTime + (binaryData.length * bitDuration));
+            gainNode.gain.linearRampToValueAtTime(0, startTime + (binaryData.length * bitDuration) + 0.1);
+
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            osc.start();
+            osc.stop(startTime + (binaryData.length * bitDuration) + 1.0);
+
+            // SYNCED VISUALS
+            let charIndex = 0;
+            const visualInterval = setInterval(() => {
+                if (charIndex < binaryData.length) {
+                    consoleDiv.innerHTML += binaryData[charIndex];
+                    charIndex++;
+                    window.scrollTo(0,0); // Keep focus on top
+                } else {
+                    clearInterval(visualInterval);
+                    setTimeout(() => {
+                        consoleDiv.innerHTML += "<br><br>[ TRANSMISSION COMPLETE ]<br>WELCOME TO THE MATRIARCHY.";
+                    }, 500);
+                }
+            }, bitDuration * 1000);
+        }
+    })();
+</script>
+
         
         // Keep buffer clean (only keep last N chars)
         if (inputBuffer.length > 20) {
