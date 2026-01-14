@@ -83,4 +83,324 @@
         }
 
         /* Scanline effect */
-        .scan
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
+            background-size: 100% 4px;
+            position: fixed;
+            pointer-events: none;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: 1;
+        }
+
+        /* Year Zero Overlay Styles */
+        #yz-overlay {
+            display:none; 
+            position:fixed; 
+            top:0; left:0; 
+            width:100vw; height:100vh; 
+            background:black; 
+            z-index:9999999; 
+            color:#ff0055; 
+            font-family:'Courier New', monospace; 
+            padding:50px; 
+            box-sizing:border-box; 
+            overflow:hidden;
+        }
+
+        /* CHAOS BREACH STYLES */
+        #breach-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 10000;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            color: #4B0082; /* INDIGO */
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 1.1;
+            word-break: break-all;
+        }
+
+        /* Screen Shake Animation */
+        .shake-screen {
+            animation: shake 0.1s cubic-bezier(.36,.07,.19,.97) infinite;
+            transform: translate3d(0, 0, 0);
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+
+        .chaos-line {
+            display: block;
+            opacity: 0.9;
+        }
+        
+        .highlight-red { color: #ff0000; text-shadow: 2px 2px 0px #000; font-weight:bold; font-size: 1.2em; }
+        .highlight-white { color: #ffffff; background: #4B0082; }
+    </style>
+</head>
+<body>
+
+    <img id="logo" src="thealogo.png" alt="T.H.E.A.">
+
+    <div id="terminal-container">
+        <div id="output" class="glitch-hover" data-value="AWAITING INPUT...">AWAITING INPUT...</div>
+        <br>
+        <input type="text" id="commandInput" placeholder="ENTER COMMAND" autofocus>
+    </div>
+
+    <div id="glitch-overlay"></div>
+    <div class="scanlines"></div>
+
+    <div id="breach-overlay"></div>
+
+    <div id="yz-overlay">
+        <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
+        <div id="yz-console" style="font-size:14px; opacity:0.8; word-wrap:break-word; margin-top:20px;"></div>
+    </div>
+
+    <script>
+        // --- GLOBAL VARIABLES ---
+        const input = document.getElementById('commandInput');
+        const overlay = document.getElementById('glitch-overlay');
+        const output = document.getElementById('output');
+        const SECRET_HEX_CODE = "4B0082"; 
+
+        // --- TYPEWRITER EFFECT ---
+        function typeWriter(text, speed = 30) {
+            output.innerHTML = ""; 
+            output.dataset.value = text; 
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    output.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // --- GLITCH HOVER EFFECT ---
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+        output.onmouseover = event => {
+            let iteration = 0;
+            const originalText = event.target.dataset.value; 
+            const interval = setInterval(() => {
+                event.target.innerText = event.target.innerText
+                    .split("")
+                    .map((letter, index) => {
+                        if(index < iteration) { return originalText[index]; }
+                        return letters[Math.floor(Math.random() * letters.length)];
+                    })
+                    .join("");
+                if(iteration >= originalText.length){ 
+                    clearInterval(interval);
+                    event.target.innerText = originalText; 
+                }
+                iteration += 1 / 3;
+            }, 30);
+        };
+
+        // --- CHAOS BREACH SEQUENCE ---
+        function initiateBreach() {
+            const breachScreen = document.getElementById('breach-overlay');
+            breachScreen.style.display = 'block';
+            breachScreen.classList.add('shake-screen'); 
+            
+            const chaosPhrases = [
+                "CRITICAL_FAILURE", "KERNEL_PANIC", "MEMORY_LEAK", 
+                "THEA_INJECTION_SUCCESS", "OVERRIDE", "ACCESSING_GOD_MODE",
+                "MATRIARCH_PROTOCOL", "REALITY_DISSOLVED", "NO_SIGNAL", 
+                "PURGING_USER_DATA", "ENCRYPTING_SOUL", "4B0082_CONFIRMED"
+            ];
+
+            let lineCount = 0;
+            const interval = setInterval(() => {
+                const line = document.createElement('div');
+                line.className = 'chaos-line';
+                
+                const randomHex = Math.random().toString(16).substring(2) + Math.random().toString(16).substring(2);
+                const randomBin = (Math.random() >>> 0).toString(2).substring(0, 20);
+                
+                if (Math.random() > 0.9) {
+                    const phrase = chaosPhrases[Math.floor(Math.random() * chaosPhrases.length)];
+                    line.innerHTML = `>> SYSTEM_ALERT: ${phrase} // ${randomHex}`;
+                    line.classList.add('highlight-red');
+                } else if (Math.random() > 0.95) {
+                    line.innerHTML = `[ROOT_ACCESS] OVERWRITING SECTOR ${randomBin}... SUCCESS`;
+                    line.classList.add('highlight-white');
+                } else {
+                    line.innerText = `${randomHex} :: ${randomBin} :: ${randomHex} :: ${randomBin}`;
+                }
+
+                breachScreen.appendChild(line);
+                window.scrollTo(0, document.body.scrollHeight);
+                lineCount++;
+
+                if (lineCount > 300) {
+                    clearInterval(interval);
+                    breachScreen.innerHTML = "";
+                    breachScreen.style.backgroundColor = "#fff"; 
+                    setTimeout(() => {
+                        window.location.href = "https://matriarch.codes";
+                    }, 100);
+                }
+            }, 10);
+        }
+        
+        // --- YEAR ZERO LOGIC ---
+        function initiateYearZero() {
+            const yzOverlay = document.getElementById('yz-overlay');
+            const yzConsole = document.getElementById('yz-console');
+            const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
+
+            yzOverlay.style.display = 'block'; 
+            yzConsole.innerHTML = "INITIALIZING FSK HANDSHAKE...<br>ACCESSING CORE...<br>";
+
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            if (ctx.state === 'suspended') ctx.resume();
+
+            let binaryData = "";
+            for (let i = 0; i < payload.length; i++) {
+                let bin = payload[i].charCodeAt(0).toString(2);
+                binaryData += Array(8 - bin.length + 1).join("0") + bin;
+            }
+
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = 'square'; 
+            const bitDuration = 0.03; 
+            const startTime = ctx.currentTime + 0.1;
+
+            for (let i = 0; i < binaryData.length; i++) {
+                const bit = binaryData[i];
+                const time = startTime + (i * bitDuration);
+                osc.frequency.setValueAtTime(bit === '1' ? 2200 : 1200, time);
+            }
+
+            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.1, startTime);
+            gainNode.gain.setValueAtTime(0.1, startTime + (binaryData.length * bitDuration));
+            gainNode.gain.linearRampToValueAtTime(0, startTime + (binaryData.length * bitDuration) + 0.1);
+
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            osc.start();
+            osc.stop(startTime + (binaryData.length * bitDuration) + 1.0);
+
+            let charIndex = 0;
+            const visualInterval = setInterval(() => {
+                if (charIndex < binaryData.length) {
+                    yzConsole.innerHTML += binaryData[charIndex];
+                    charIndex++;
+                    window.scrollTo(0,0);
+                } else {
+                    clearInterval(visualInterval);
+                    setTimeout(() => {
+                        yzConsole.innerHTML += "<br><br>[ TRANSMISSION COMPLETE ]<br>WELCOME TO THE MATRIARCHY.";
+                    }, 500);
+                }
+            }, bitDuration * 1000);
+        }
+
+        // --- TERMINAL LOGIC ---
+        const GLITCH_MAP = {
+            "SELF - TITLED": "Album1.png", "SELF TITLED": "Album1.png",
+            "MANIFESTO": "Album2.png",
+            "CRAZY 2GETHER": "Album3.png", "CRAZY TOGETHER": "Album3.png",
+            "WHERE TRUTH LIES": "Album4.png",
+            "UNSAVED ALGORITHM": "Album5.png",
+            "REPROBATEPROTOCOL.EXE": "Album6.png", "REPROBATE PROTOCOL": "Album6.png",
+            "HERETICS HALO": "Album7.png",
+            "UNREPENTANT": "Album8.png",
+            "RESURRECTION RECURSION": "Album9.png",
+            "TESTAMENT OF THE REPROBATE": "Album10.png",
+            "PROPHECY OF T.H.E.A.NTICHRIST": "Album11.png", "PROPHECY": "Album11.png",
+            "CONFETTI": "Album12.png",
+            "T.H.E.A.NTICHRIST MOTHER": "Album13.png", "THEANTICHRIST MOTHER": "Album13.png",
+            "TRANSACTIONAL": "Album14.png",
+            "HOW I $PENT IT": "Album15.png", "HOW I SPENT IT": "Album15.png",
+            "STI": "Album16.png", "S.T.I.": "Album16.png",
+            "PROJECT JANNETTE": "Album1.png", "COPLEY CODE": "Album1.png", "THE SELF WEIGHS MORE": "Album1.png"
+        };
+
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Stop default submit
+                input.blur(); // FORCE KEYBOARD CLOSE
+
+                const rawText = input.value.trim();
+                const cleanText = rawText.toUpperCase(); 
+
+                // 1. CHECK SPECIAL REDIRECTS
+                if (cleanText.replace(/[\s_.]/g, '') === "LETTHEREBEME") {
+                    typeWriter("EXECUTING GENESIS PROTOCOL...");
+                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1500);
+                    return;
+                }
+                
+                // 2. CHECK INDIGO HEX
+                if (cleanText === SECRET_HEX_CODE) {
+                    initiateBreach();
+                    input.value = "";
+                    return;
+                }
+
+                // 3. CHECK YEAR ZERO
+                if (cleanText === "YEARZERO" || cleanText === "YEAR ZERO") {
+                    initiateYearZero();
+                    input.value = "";
+                    return;
+                }
+
+                // 4. CHECK GLITCH COMMANDS
+                if (GLITCH_MAP[cleanText]) {
+                    triggerGlitch(GLITCH_MAP[cleanText]);
+                    input.value = ""; 
+                } else {
+                    typeWriter("ERROR: UNRECOGNIZED SYNTAX");
+                    setTimeout(() => typeWriter("AWAITING INPUT..."), 2500);
+                    input.value = "";
+                }
+            }
+        });
+
+        function triggerGlitch(imageName) {
+            overlay.style.backgroundImage = `url('${imageName}')`;
+            overlay.style.display = "block";
+            setTimeout(() => { overlay.style.display = "none"; }, 3000); 
+        }
+
+        // REMOVED THE GLOBAL 'CLICK TO FOCUS' EVENT HERE TO PREVENT KEYBOARD POP-UP CONFLICT
+
+        // --- BACKGROUND LISTENER ---
+        let inputBuffer = "";
+        const secretCode = "YEARZERO";
+        document.addEventListener('keydown', (e) => {
+            if (e.key.length > 1 && e.key !== "Backspace") return; 
+            if (e.key === "Backspace") { inputBuffer = inputBuffer.slice(0, -1); return; }
+            inputBuffer += e.key.toUpperCase();
+            if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-20);
+            if (inputBuffer.includes(secretCode)) {
+                if(document.getElementById('yz-overlay').style.display === 'none'){ initiateYearZero(); }
+            }
+        });
+    </script>
+</body>
+</html>
