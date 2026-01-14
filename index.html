@@ -113,18 +113,18 @@
             overflow:hidden;
         }
 
-        /* CHAOS BREACH STYLES */
+        /* CHAOS BREACH STYLES (INVERTED) */
         #breach-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: #000;
+            background: #FFFFFF; /* WHITE BACKGROUND */
             z-index: 10000;
             padding: 10px;
             font-family: 'Courier New', monospace;
-            color: #4B0082; /* INDIGO */
-            overflow: hidden;
+            color: #4B0082; /* INDIGO TEXT */
+            overflow: hidden; /* We handle scroll programmatically */
             font-size: 12px;
             line-height: 1.1;
             word-break: break-all;
@@ -143,11 +143,21 @@
             40%, 60% { transform: translate3d(8px, 0, 0); }
         }
 
-        .chaos-line { display: block; opacity: 0.9; }
-        .highlight-red { color: #ff0000; text-shadow: 2px 2px 0px #000; font-weight:bold; font-size: 1.2em; }
-        .highlight-white { color: #ffffff; background: #4B0082; }
+        .chaos-line { display: block; opacity: 1.0; }
+        
+        /* Highlights for White Background */
+        .highlight-red { 
+            color: #FF0000; 
+            font-weight:bold; 
+            font-size: 1.2em; 
+        }
+        .highlight-white { 
+            background: #4B0082; /* Indigo Box */
+            color: #FFFFFF;      /* White Text */
+            padding: 2px 5px;
+        }
 
-        /* LOADING BAR STYLES */
+        /* LOADING BAR STYLES (Updated for White Background) */
         #loading-container {
             display: none;
             position: absolute;
@@ -158,7 +168,7 @@
             text-align: center;
         }
         #progress-bar-border {
-            border: 2px solid #4B0082;
+            border: 3px solid #4B0082;
             padding: 5px;
             height: 30px;
             margin-top: 10px;
@@ -167,13 +177,13 @@
             height: 100%;
             width: 0%;
             background-color: #4B0082;
-            box-shadow: 0 0 10px #4B0082;
         }
         #loading-text {
             color: #4B0082;
+            font-weight: bold;
             font-size: 16px;
             letter-spacing: 2px;
-            animation: blinkText 1s infinite;
+            animation: blinkText 0.5s infinite;
         }
         @keyframes blinkText { 50% { opacity: 0.5; } }
 
@@ -290,7 +300,10 @@
                 }
 
                 chaosContainer.appendChild(line);
-                window.scrollTo(0, document.body.scrollHeight);
+                
+                // *** SCROLL FIX: Force the specific element to scroll into view ***
+                line.scrollIntoView(false); 
+
                 lineCount++;
 
                 if (lineCount > maxLines) {
@@ -304,7 +317,6 @@
                 // Clear the chaos
                 chaosContainer.innerHTML = "";
                 breachScreen.classList.remove('shake-screen');
-                window.scrollTo(0, 0);
                 
                 // Show Loader
                 loadingContainer.style.display = "block";
