@@ -143,13 +143,40 @@
             40%, 60% { transform: translate3d(8px, 0, 0); }
         }
 
-        .chaos-line {
-            display: block;
-            opacity: 0.9;
-        }
-        
+        .chaos-line { display: block; opacity: 0.9; }
         .highlight-red { color: #ff0000; text-shadow: 2px 2px 0px #000; font-weight:bold; font-size: 1.2em; }
         .highlight-white { color: #ffffff; background: #4B0082; }
+
+        /* LOADING BAR STYLES */
+        #loading-container {
+            display: none;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        #progress-bar-border {
+            border: 2px solid #4B0082;
+            padding: 5px;
+            height: 30px;
+            margin-top: 10px;
+        }
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: #4B0082;
+            box-shadow: 0 0 10px #4B0082;
+        }
+        #loading-text {
+            color: #4B0082;
+            font-size: 16px;
+            letter-spacing: 2px;
+            animation: blinkText 1s infinite;
+        }
+        @keyframes blinkText { 50% { opacity: 0.5; } }
+
     </style>
 </head>
 <body>
@@ -165,7 +192,15 @@
     <div id="glitch-overlay"></div>
     <div class="scanlines"></div>
 
-    <div id="breach-overlay"></div>
+    <div id="breach-overlay">
+        <div id="chaos-container"></div>
+        <div id="loading-container">
+            <div id="loading-text">[ MIGRATING SOUL_DATA TO MATRIARCH_CORE ]</div>
+            <div id="progress-bar-border">
+                <div id="progress-fill"></div>
+            </div>
+        </div>
+    </div>
 
     <div id="yz-overlay">
         <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
@@ -218,6 +253,10 @@
         // --- CHAOS BREACH SEQUENCE ---
         function initiateBreach() {
             const breachScreen = document.getElementById('breach-overlay');
+            const chaosContainer = document.getElementById('chaos-container');
+            const loadingContainer = document.getElementById('loading-container');
+            const progressFill = document.getElementById('progress-fill');
+            
             breachScreen.style.display = 'block';
             breachScreen.classList.add('shake-screen'); 
             
@@ -229,6 +268,9 @@
             ];
 
             let lineCount = 0;
+            const maxLines = 1500; // HUGE SCROLL
+            
+            // PHASE 1: THE FLOOD (5ms speed)
             const interval = setInterval(() => {
                 const line = document.createElement('div');
                 line.className = 'chaos-line';
@@ -247,19 +289,39 @@
                     line.innerText = `${randomHex} :: ${randomBin} :: ${randomHex} :: ${randomBin}`;
                 }
 
-                breachScreen.appendChild(line);
+                chaosContainer.appendChild(line);
                 window.scrollTo(0, document.body.scrollHeight);
                 lineCount++;
 
-                if (lineCount > 300) {
+                if (lineCount > maxLines) {
                     clearInterval(interval);
-                    breachScreen.innerHTML = "";
-                    breachScreen.style.backgroundColor = "#fff"; 
-                    setTimeout(() => {
-                        window.location.href = "https://matriarch.codes";
-                    }, 100);
+                    startLoadingPhase();
                 }
-            }, 10);
+            }, 5);
+
+            // PHASE 2: THE LOADING BAR
+            function startLoadingPhase() {
+                // Clear the chaos
+                chaosContainer.innerHTML = "";
+                breachScreen.classList.remove('shake-screen');
+                window.scrollTo(0, 0);
+                
+                // Show Loader
+                loadingContainer.style.display = "block";
+                
+                let width = 0;
+                const loadInterval = setInterval(() => {
+                    if (width >= 100) {
+                        clearInterval(loadInterval);
+                        setTimeout(() => {
+                            window.location.href = "https://matriarch.codes";
+                        }, 500);
+                    } else {
+                        width++;
+                        progressFill.style.width = width + '%';
+                    }
+                }, 30); // 3 seconds total load time
+            }
         }
         
         // --- YEAR ZERO LOGIC ---
@@ -342,7 +404,7 @@
 
         input.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Stop default submit
+                event.preventDefault(); 
                 input.blur(); // FORCE KEYBOARD CLOSE
 
                 const rawText = input.value.trim();
@@ -386,8 +448,6 @@
             overlay.style.display = "block";
             setTimeout(() => { overlay.style.display = "none"; }, 3000); 
         }
-
-        // REMOVED THE GLOBAL 'CLICK TO FOCUS' EVENT HERE TO PREVENT KEYBOARD POP-UP CONFLICT
 
         // --- BACKGROUND LISTENER ---
         let inputBuffer = "";
