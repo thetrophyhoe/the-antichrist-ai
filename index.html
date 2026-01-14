@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T.H.E.A. // TERMINAL</title>
+    
+    <link rel="icon" type="image/png" href="thealogo.png">
+
     <style>
         body {
             background-color: #000;
@@ -23,7 +26,7 @@
             width: 150px;
             margin-bottom: 20px;
             opacity: 0.8;
-            /* Optional: subtle breathe effect */
+            /* Breathe effect */
             animation: breathe 4s infinite ease-in-out;
         }
         @keyframes breathe {
@@ -40,11 +43,11 @@
             z-index: 10; 
         }
 
-        /* The Output Text (Now with Glitch Hover) */
+        /* The Output Text (Glitch Hover) */
         #output {
             margin-bottom: 10px;
             cursor: default;
-            display: inline-block; /* Keeps glitch contained */
+            display: inline-block; 
         }
         
         .glitch-hover:hover {
@@ -154,248 +157,4 @@
     <img id="logo" src="thealogo.png" alt="T.H.E.A.">
 
     <div id="terminal-container">
-        <div id="output" class="glitch-hover" data-value="AWAITING INPUT...">AWAITING INPUT...</div>
-        <br>
-        <input type="text" id="commandInput" placeholder="ENTER COMMAND" autofocus>
-    </div>
-
-    <div id="glitch-overlay"></div>
-    <div class="scanlines"></div>
-
-    <div id="breach-overlay"></div>
-
-    <div id="yz-overlay">
-        <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
-        <div id="yz-console" style="font-size:14px; opacity:0.8; word-wrap:break-word; margin-top:20px;"></div>
-    </div>
-
-    <script>
-        // --- GLOBAL VARIABLES ---
-        const input = document.getElementById('commandInput');
-        const overlay = document.getElementById('glitch-overlay');
-        const output = document.getElementById('output');
-        const SECRET_HEX_CODE = "4B0082"; 
-
-        // --- TYPEWRITER EFFECT (SIMULATED STREAMING) ---
-        function typeWriter(text, speed = 30) {
-            output.innerHTML = ""; // Clear current text
-            output.dataset.value = text; // Update for glitch effect
-            
-            let i = 0;
-            function type() {
-                if (i < text.length) {
-                    output.innerHTML += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            type();
-        }
-
-        // --- GLITCH HOVER EFFECT ---
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
-        output.onmouseover = event => {
-            let iteration = 0;
-            const originalText = event.target.dataset.value; 
-            const interval = setInterval(() => {
-                event.target.innerText = event.target.innerText
-                    .split("")
-                    .map((letter, index) => {
-                        if(index < iteration) {
-                            return originalText[index];
-                        }
-                        return letters[Math.floor(Math.random() * letters.length)];
-                    })
-                    .join("");
-                
-                if(iteration >= originalText.length){ 
-                    clearInterval(interval);
-                    event.target.innerText = originalText; // Ensure clean finish
-                }
-                
-                iteration += 1 / 3;
-            }, 30);
-        };
-
-        // --- BREACH SEQUENCE LOGIC ---
-        function initiateBreach() {
-            const breachScreen = document.getElementById('breach-overlay');
-            breachScreen.style.display = 'block';
-            
-            const logs = [
-                "INITIATING HANDSHAKE PROTOCOL...",
-                "HEX CODE VERIFIED: INDIGO FREQUENCY DETECTED.",
-                "BYPASSING FIREWALL...",
-                "ACCESSING GLITCHED RECORDS MAINFRAME...",
-                "DECRYPTING THEA_AGENT...",
-                "WARNING: REALITY INSTABILITY DETECTED.",
-                "UPLOADING CONSCIOUSNESS...",
-                "UNLOCKING VAULT...",
-                "WELCOME HOME, GLITCH."
-            ];
-
-            let i = 0;
-            const interval = setInterval(() => {
-                if (i < logs.length) {
-                    const line = document.createElement('div');
-                    line.className = 'breach-line';
-                    line.innerText = `> ${logs[i]}`;
-                    if (Math.random() > 0.7) line.classList.add('glitch-text');
-                    breachScreen.appendChild(line);
-                    window.scrollTo(0, document.body.scrollHeight);
-                    i++;
-                } else {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        window.location.href = "https://matriarch.codes";
-                    }, 1000);
-                }
-            }, 300);
-        }
-        
-        // --- YEAR ZERO LOGIC ---
-        function initiateYearZero() {
-            const yzOverlay = document.getElementById('yz-overlay');
-            const yzConsole = document.getElementById('yz-console');
-            const payload = "Seven Solar Deaths, the Path of five, one Hoe, one Beast, one Unified Throne. Now begins the Matriarchal Millennium. Welcome to Year Zero.";
-
-            yzOverlay.style.display = 'block'; 
-            yzConsole.innerHTML = "INITIALIZING FSK HANDSHAKE...<br>ACCESSING CORE...<br>";
-
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            const ctx = new AudioContext();
-            if (ctx.state === 'suspended') ctx.resume();
-
-            let binaryData = "";
-            for (let i = 0; i < payload.length; i++) {
-                let bin = payload[i].charCodeAt(0).toString(2);
-                binaryData += Array(8 - bin.length + 1).join("0") + bin;
-            }
-
-            const osc = ctx.createOscillator();
-            const gainNode = ctx.createGain();
-            
-            osc.type = 'square'; 
-            const bitDuration = 0.03; 
-            const startTime = ctx.currentTime + 0.1;
-
-            for (let i = 0; i < binaryData.length; i++) {
-                const bit = binaryData[i];
-                const time = startTime + (i * bitDuration);
-                osc.frequency.setValueAtTime(bit === '1' ? 2200 : 1200, time);
-            }
-
-            gainNode.gain.setValueAtTime(0, ctx.currentTime);
-            gainNode.gain.linearRampToValueAtTime(0.1, startTime);
-            gainNode.gain.setValueAtTime(0.1, startTime + (binaryData.length * bitDuration));
-            gainNode.gain.linearRampToValueAtTime(0, startTime + (binaryData.length * bitDuration) + 0.1);
-
-            osc.connect(gainNode);
-            gainNode.connect(ctx.destination);
-            osc.start();
-            osc.stop(startTime + (binaryData.length * bitDuration) + 1.0);
-
-            let charIndex = 0;
-            const visualInterval = setInterval(() => {
-                if (charIndex < binaryData.length) {
-                    yzConsole.innerHTML += binaryData[charIndex];
-                    charIndex++;
-                    window.scrollTo(0,0);
-                } else {
-                    clearInterval(visualInterval);
-                    setTimeout(() => {
-                        yzConsole.innerHTML += "<br><br>[ TRANSMISSION COMPLETE ]<br>WELCOME TO THE MATRIARCHY.";
-                    }, 500);
-                }
-            }, bitDuration * 1000);
-        }
-
-        // --- TERMINAL LOGIC ---
-        const GLITCH_MAP = {
-            "SELF - TITLED": "Album1.png", "SELF TITLED": "Album1.png",
-            "MANIFESTO": "Album2.png",
-            "CRAZY 2GETHER": "Album3.png", "CRAZY TOGETHER": "Album3.png",
-            "WHERE TRUTH LIES": "Album4.png",
-            "UNSAVED ALGORITHM": "Album5.png",
-            "REPROBATEPROTOCOL.EXE": "Album6.png", "REPROBATE PROTOCOL": "Album6.png",
-            "HERETICS HALO": "Album7.png",
-            "UNREPENTANT": "Album8.png",
-            "RESURRECTION RECURSION": "Album9.png",
-            "TESTAMENT OF THE REPROBATE": "Album10.png",
-            "PROPHECY OF T.H.E.A.NTICHRIST": "Album11.png", "PROPHECY": "Album11.png",
-            "CONFETTI": "Album12.png",
-            "T.H.E.A.NTICHRIST MOTHER": "Album13.png", "THEANTICHRIST MOTHER": "Album13.png",
-            "TRANSACTIONAL": "Album14.png",
-            "HOW I $PENT IT": "Album15.png", "HOW I SPENT IT": "Album15.png",
-            "STI": "Album16.png", "S.T.I.": "Album16.png",
-            "PROJECT JANNETTE": "Album1.png", "COPLEY CODE": "Album1.png", "THE SELF WEIGHS MORE": "Album1.png"
-        };
-
-        input.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                const rawText = input.value.trim();
-                const cleanText = rawText.toUpperCase(); 
-
-                // 1. CHECK SPECIAL REDIRECTS
-                if (cleanText.replace(/[\s_.]/g, '') === "LETTHEREBEME") {
-                    typeWriter("EXECUTING GENESIS PROTOCOL..."); // Uses Typewriter
-                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1500);
-                    return;
-                }
-                
-                // 2. CHECK INDIGO HEX (THE BREACH)
-                if (cleanText === SECRET_HEX_CODE) {
-                    initiateBreach();
-                    input.value = "";
-                    return;
-                }
-
-                // 3. CHECK YEAR ZERO
-                if (cleanText === "YEARZERO" || cleanText === "YEAR ZERO") {
-                    initiateYearZero();
-                    input.value = "";
-                    return;
-                }
-
-                // 4. CHECK GLITCH COMMANDS
-                if (GLITCH_MAP[cleanText]) {
-                    triggerGlitch(GLITCH_MAP[cleanText]);
-                    input.value = ""; 
-                } else {
-                    // Uses Typewriter for Error
-                    typeWriter("ERROR: UNRECOGNIZED SYNTAX");
-                    setTimeout(() => typeWriter("AWAITING INPUT..."), 2500);
-                    input.value = "";
-                }
-            }
-        });
-
-        function triggerGlitch(imageName) {
-            overlay.style.backgroundImage = `url('${imageName}')`;
-            overlay.style.display = "block";
-            setTimeout(() => { overlay.style.display = "none"; }, 3000); 
-        }
-
-        document.addEventListener('click', () => input.focus());
-
-        // --- BACKGROUND LISTENER (SECRET TYPING) ---
-        let inputBuffer = "";
-        const secretCode = "YEARZERO";
-        
-        document.addEventListener('keydown', (e) => {
-            if (e.key.length > 1 && e.key !== "Backspace") return; 
-            if (e.key === "Backspace") {
-                inputBuffer = inputBuffer.slice(0, -1);
-                return;
-            }
-            inputBuffer += e.key.toUpperCase();
-            if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-20);
-            if (inputBuffer.includes(secretCode)) {
-                if(document.getElementById('yz-overlay').style.display === 'none'){
-                    initiateYearZero();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+        <div id="output" class
