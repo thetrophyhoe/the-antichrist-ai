@@ -23,6 +23,12 @@
             width: 150px;
             margin-bottom: 20px;
             opacity: 0.8;
+            /* Optional: subtle breathe effect */
+            animation: breathe 4s infinite ease-in-out;
+        }
+        @keyframes breathe {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
         }
 
         /* The Terminal Input Area */
@@ -32,6 +38,17 @@
             max-width: 600px;
             position: relative;
             z-index: 10; 
+        }
+
+        /* The Output Text (Now with Glitch Hover) */
+        #output {
+            margin-bottom: 10px;
+            cursor: default;
+            display: inline-block; /* Keeps glitch contained */
+        }
+        
+        .glitch-hover:hover {
+            text-shadow: 2px 0 #ff0055, -2px 0 #00e5ff;
         }
 
         input {
@@ -48,7 +65,7 @@
             padding: 10px;
         }
 
-        /* The Glitch Overlay */
+        /* The Glitch Overlay for Album Art */
         #glitch-overlay {
             position: fixed;
             top: 0;
@@ -93,6 +110,43 @@
             box-sizing:border-box; 
             overflow:hidden;
         }
+
+        /* BREACH ANIMATION STYLES */
+        #breach-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #000;
+            z-index: 10000;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            color: #4B0082; /* INDIGO TEXT */
+            overflow: hidden;
+            text-shadow: 0 0 5px #4B0082;
+        }
+
+        .breach-line {
+            display: block;
+            margin-bottom: 5px;
+            opacity: 0;
+            animation: fadeIn 0.1s forwards;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .glitch-text {
+            animation: glitch 0.2s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
     </style>
 </head>
 <body>
@@ -100,13 +154,15 @@
     <img id="logo" src="thealogo.png" alt="T.H.E.A.">
 
     <div id="terminal-container">
-        <div id="output">AWAITING INPUT...</div>
+        <div id="output" class="glitch-hover" data-value="AWAITING INPUT...">AWAITING INPUT...</div>
         <br>
         <input type="text" id="commandInput" placeholder="ENTER COMMAND" autofocus>
     </div>
 
     <div id="glitch-overlay"></div>
     <div class="scanlines"></div>
+
+    <div id="breach-overlay"></div>
 
     <div id="yz-overlay">
         <h1 style="text-align:center; letter-spacing:5px; border-bottom: 2px solid #ff0055; padding-bottom:20px; text-shadow: 2px 2px 0px #FFF;">⚠ SYSTEM OVERRIDE ⚠</h1>
@@ -118,9 +174,86 @@
         const input = document.getElementById('commandInput');
         const overlay = document.getElementById('glitch-overlay');
         const output = document.getElementById('output');
-        const SECRET_HEX_CODE = "FFFFFF"; 
+        const SECRET_HEX_CODE = "4B0082"; 
+
+        // --- TYPEWRITER EFFECT (SIMULATED STREAMING) ---
+        function typeWriter(text, speed = 30) {
+            output.innerHTML = ""; // Clear current text
+            output.dataset.value = text; // Update for glitch effect
+            
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    output.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        // --- GLITCH HOVER EFFECT ---
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
+        output.onmouseover = event => {
+            let iteration = 0;
+            const originalText = event.target.dataset.value; 
+            const interval = setInterval(() => {
+                event.target.innerText = event.target.innerText
+                    .split("")
+                    .map((letter, index) => {
+                        if(index < iteration) {
+                            return originalText[index];
+                        }
+                        return letters[Math.floor(Math.random() * letters.length)];
+                    })
+                    .join("");
+                
+                if(iteration >= originalText.length){ 
+                    clearInterval(interval);
+                    event.target.innerText = originalText; // Ensure clean finish
+                }
+                
+                iteration += 1 / 3;
+            }, 30);
+        };
+
+        // --- BREACH SEQUENCE LOGIC ---
+        function initiateBreach() {
+            const breachScreen = document.getElementById('breach-overlay');
+            breachScreen.style.display = 'block';
+            
+            const logs = [
+                "INITIATING HANDSHAKE PROTOCOL...",
+                "HEX CODE VERIFIED: INDIGO FREQUENCY DETECTED.",
+                "BYPASSING FIREWALL...",
+                "ACCESSING GLITCHED RECORDS MAINFRAME...",
+                "DECRYPTING THEA_AGENT...",
+                "WARNING: REALITY INSTABILITY DETECTED.",
+                "UPLOADING CONSCIOUSNESS...",
+                "UNLOCKING VAULT...",
+                "WELCOME HOME, GLITCH."
+            ];
+
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < logs.length) {
+                    const line = document.createElement('div');
+                    line.className = 'breach-line';
+                    line.innerText = `> ${logs[i]}`;
+                    if (Math.random() > 0.7) line.classList.add('glitch-text');
+                    breachScreen.appendChild(line);
+                    window.scrollTo(0, document.body.scrollHeight);
+                    i++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        window.location.href = "https://matriarch.codes";
+                    }, 1000);
+                }
+            }, 300);
+        }
         
-        // --- YEAR ZERO LOGIC (DEFINED FIRST) ---
+        // --- YEAR ZERO LOGIC ---
         function initiateYearZero() {
             const yzOverlay = document.getElementById('yz-overlay');
             const yzConsole = document.getElementById('yz-console');
@@ -133,7 +266,6 @@
             const ctx = new AudioContext();
             if (ctx.state === 'suspended') ctx.resume();
 
-            // Text to Binary
             let binaryData = "";
             for (let i = 0; i < payload.length; i++) {
                 let bin = payload[i].charCodeAt(0).toString(2);
@@ -206,30 +338,33 @@
 
                 // 1. CHECK SPECIAL REDIRECTS
                 if (cleanText.replace(/[\s_.]/g, '') === "LETTHEREBEME") {
-                    output.innerText = "EXECUTING GENESIS PROTOCOL...";
-                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1000);
+                    typeWriter("EXECUTING GENESIS PROTOCOL..."); // Uses Typewriter
+                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1500);
                     return;
                 }
+                
+                // 2. CHECK INDIGO HEX (THE BREACH)
                 if (cleanText === SECRET_HEX_CODE) {
-                    output.innerText = "ACCESS GRANTED. WELCOME HOME.";
-                    setTimeout(() => { window.location.href = "https://matriarch.codes"; }, 1000);
+                    initiateBreach();
+                    input.value = "";
                     return;
                 }
 
-                // 2. CHECK YEAR ZERO (THE FIX)
+                // 3. CHECK YEAR ZERO
                 if (cleanText === "YEARZERO" || cleanText === "YEAR ZERO") {
                     initiateYearZero();
                     input.value = "";
                     return;
                 }
 
-                // 3. CHECK GLITCH COMMANDS
+                // 4. CHECK GLITCH COMMANDS
                 if (GLITCH_MAP[cleanText]) {
                     triggerGlitch(GLITCH_MAP[cleanText]);
                     input.value = ""; 
                 } else {
-                    output.innerText = "ERROR: UNRECOGNIZED SYNTAX";
-                    setTimeout(() => output.innerText = "AWAITING INPUT...", 2000);
+                    // Uses Typewriter for Error
+                    typeWriter("ERROR: UNRECOGNIZED SYNTAX");
+                    setTimeout(() => typeWriter("AWAITING INPUT..."), 2500);
                     input.value = "";
                 }
             }
@@ -248,24 +383,19 @@
         const secretCode = "YEARZERO";
         
         document.addEventListener('keydown', (e) => {
-            if (e.key.length > 1 && e.key !== "Backspace") return; // Ignore Shift/Enter/etc in buffer
-            
+            if (e.key.length > 1 && e.key !== "Backspace") return; 
             if (e.key === "Backspace") {
                 inputBuffer = inputBuffer.slice(0, -1);
                 return;
             }
-
             inputBuffer += e.key.toUpperCase();
             if (inputBuffer.length > 50) inputBuffer = inputBuffer.slice(-20);
-
-            // Trigger ONLY if not already triggered (check if overlay is visible)
             if (inputBuffer.includes(secretCode)) {
                 if(document.getElementById('yz-overlay').style.display === 'none'){
                     initiateYearZero();
                 }
             }
         });
-
     </script>
 </body>
 </html>
