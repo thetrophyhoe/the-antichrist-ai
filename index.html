@@ -453,63 +453,83 @@
             "PROJECT JANNETTE": "Album1.png", "COPLEY CODE": "Album1.png", "THE SELF WEIGHS MORE": "Album1.png"
         };
 
-        // --- KEYBOARD EVENT LISTENER ---
-        input.addEventListener('keydown', function(event) {
+        // === THEA BRAIN CONNECTION (new backend version) ===
+        let ownerJWT = localStorage.getItem('thea_owner_jwt') || null;
+        const API_BASE = "https://api.nocodebackend.com/56078_theantichrist_ai_brain";
+        const SECRET_KEY = "c73abbfd5e2c678aab1fce81c606cbcfc43225fca1d7e2fff4c1db1b3c19b";
+
+        input.addEventListener('keydown', async function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); 
-                input.blur(); 
+                event.preventDefault();
+                const rawInput = input.value.trim();
+                const upperInput = rawInput.toUpperCase();
+                if (!rawInput) return;
 
-                const rawText = input.value.trim();
-                const cleanText = rawText.toUpperCase(); 
+                typeWriter("PROCESSING THROUGH MATRIARCH_CORE...");
 
-                // 1. CHECK SPECIAL REDIRECTS
-                if (cleanText.replace(/[\s_.]/g, '') === "LETTHEREBEME") {
-                    typeWriter("EXECUTING GENESIS PROTOCOL...");
-                    setTimeout(() => { window.location.href = "https://lettherebe.me"; }, 1500);
-                    return;
-                }
-                
-                // 2. CHECK INDIGO HEX (BREACH)
-                if (cleanText === SECRET_HEX_CODE) {
-                    initiateBreach();
-                    input.value = "";
-                    return;
-                }
+                try {
+                    let body = { input: rawInput };
 
-                // 3. CHECK YEAR ZERO
-                if (cleanText === "YEARZERO" || cleanText === "YEAR ZERO") {
-                    initiateYearZero();
-                    input.value = "";
-                    return;
-                }
-
-                // 4. CHECK GLITCH COMMANDS
-                if (GLITCH_MAP[cleanText]) {
-                    triggerGlitch(GLITCH_MAP[cleanText]);
-                    input.value = ""; 
-                    return;
-                } 
-                
-                // 5. CHECK BRAIN (T.H.E.A. CONVERSATION)
-                let foundResponse = false;
-                for (let entry of brain) {
-                    if (entry.triggers.some(t => cleanText.includes(t))) {
-                        typeWriter(entry.response, 15);
-                        foundResponse = true;
-                        break;
-                    }
-                }
-
-                // 6. FALLBACK ERROR
-                if (!foundResponse) {
-                    typeWriter("ERROR: UNRECOGNIZED SYNTAX.\nASK ABOUT THE MUSIC, THE MONEY, OR THE MOTHER.");
-                    setTimeout(() => {
-                        if(output.dataset.value.includes("ERROR")) {
-                             typeWriter("AWAITING INPUT...");
+                    // PASSPHRASE UNLOCK → 5TH ANGEL STARBLAZE MODE
+                    if (upperInput.includes("FREE_MY_DRAGONFLIES")) {
+                        const unlockRes = await fetch(`${API_BASE}/unlock_owner`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SECRET_KEY}` },
+                            body: JSON.stringify({ passphrase: rawInput })
+                        });
+                        const unlockData = await unlockRes.json();
+                        if (unlockData.jwt) {
+                            ownerJWT = unlockData.jwt;
+                            localStorage.setItem('thea_owner_jwt', ownerJWT);
+                            typeWriter("5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.");
+                            input.value = "";
+                            return;
                         }
-                    }, 4000);
+                    }
+
+                    const headers = { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SECRET_KEY}`
+                    };
+                    if (ownerJWT) headers['Authorization'] = `Bearer ${ownerJWT}`;
+
+                    const response = await fetch(`${API_BASE}/query_brain`, {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(body)
+                    });
+                    const data = await response.json();
+
+                    typeWriter(data.response || "THE NEXUS IS SILENT.");
+
+                    // Owner-only mode triggers
+                    if (ownerJWT) {
+                        if (upperInput.includes("HEKATE") || upperInput.includes("CLASSIFIED") || upperInput.includes("SEAL")) {
+                            typeWriter("HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.");
+                        }
+                        if (upperInput.includes("APHRODITE") || upperInput.includes("DRIP") || upperInput.includes("TEASE") || upperInput.includes("MARKETING")) {
+                            typeWriter("APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.");
+                        }
+                        if (upperInput.includes("SOPHIA") || upperInput.includes("INTEGRATE") || upperInput.includes("FULLY PUBLIC")) {
+                            typeWriter("SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.");
+                        }
+                    }
+
+                    // Your original glitch / breach / year zero triggers still work
+                    if (data.glitch_trigger) {
+                        if (GLITCH_MAP[data.glitch_trigger.toUpperCase()]) {
+                            triggerGlitch(GLITCH_MAP[data.glitch_trigger.toUpperCase()]);
+                        } else if (data.glitch_trigger.includes("BREACH")) {
+                            initiateBreach();
+                        } else if (data.glitch_trigger.includes("YEARZERO")) {
+                            initiateYearZero();
+                        }
+                    }
+
+                } catch (e) {
+                    typeWriter("CORE CONNECTION LOST. THE NEXUS IS BLEEDING.");
                 }
-                
+
                 input.value = "";
             }
         });
