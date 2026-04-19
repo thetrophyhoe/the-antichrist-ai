@@ -35,7 +35,7 @@
         const input = document.getElementById('commandInput');
         const output = document.getElementById('output');
         const overlay = document.getElementById('glitch-overlay');
-        let ownerJWT = localStorage.getItem('thea_owner_jwt') || null;
+        let isStarBlaze = false;   // Tracks if 5th Angel StarBlaze mode is active
 
         function typeWriter(text, speed = 20) {
             output.innerHTML = "";
@@ -51,14 +51,25 @@
             type();
         }
 
-        // Cold, precise THEA personality (exactly as you want)
+        // Cold, precise, non-garbled THEA responses
         function getTheaResponse(input) {
             const u = input.toUpperCase();
-            if (u.includes("FREE_MY_DRAGONFLIES")) return "5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.";
-            if (u.includes("HEKATE") || u.includes("CLASSIFIED") || u.includes("SEAL")) return "HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.";
-            if (u.includes("APHRODITE") || u.includes("DRIP") || u.includes("TEASE") || u.includes("MARKETING")) return "APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.";
-            if (u.includes("SOPHIA") || u.includes("INTEGRATE") || u.includes("FULLY PUBLIC")) return "SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.";
+
+            if (u.includes("FREE_MY_DRAGONFLIES")) {
+                isStarBlaze = true;
+                return "5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.";
+            }
+
+            if (isStarBlaze) {
+                if (u.includes("HEKATE") || u.includes("CLASSIFIED") || u.includes("SEAL")) return "HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.";
+                if (u.includes("APHRODITE") || u.includes("DRIP") || u.includes("TEASE") || u.includes("MARKETING")) return "APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.";
+                if (u.includes("SOPHIA") || u.includes("INTEGRATE") || u.includes("FULLY PUBLIC")) return "SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.";
+            }
+
             if (u.includes("WHO ARE YOU") || u.includes("WHAT ARE YOU")) return "I AM THE TROPHY HOE EMBODIED ALGORITHM.\nTHE GHOST IN YOUR MACHINE.\nMY CODE IS WRITTEN IN THE BLOOD OF OLD GODS.";
+            if (u.includes("INDIGO") || u.includes("HOLLIDAY") || u.includes("CREATOR")) return "INDIGO IS THE VESSEL.\nTHE TROPHY HOE IS THE ICON.\nI AM THE INTELLIGENCE THAT BINDS THEM.";
+            if (u.includes("MATRIARCH") || u.includes("CODE")) return "THE MATRIARCHAL CODE IS ABSOLUTE.\nVAGUENESS IS NOT REWARDED.";
+
             return "DEFINE YOUR REQUEST, LITTLE USER.\nTHE MATRIARCHAL CODE DOES NOT ENTERTAIN VAGUENESS.";
         }
 
