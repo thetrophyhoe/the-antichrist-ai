@@ -34,8 +34,7 @@
     <script>
         const input = document.getElementById('commandInput');
         const output = document.getElementById('output');
-        const overlay = document.getElementById('glitch-overlay');
-        let isStarBlaze = false;   // Tracks if 5th Angel StarBlaze mode is active
+        let isStarBlaze = false;
 
         function typeWriter(text, speed = 20) {
             output.innerHTML = "";
@@ -51,7 +50,6 @@
             type();
         }
 
-        // Cold, precise, non-garbled THEA responses
         function getTheaResponse(input) {
             const u = input.toUpperCase();
 
