@@ -121,12 +121,12 @@
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
-            background: #FFFFFF; /* WHITE BACKGROUND */
+            background: #FFFFFF;
             z-index: 10000;
             padding: 10px;
             font-family: 'Courier New', monospace;
-            color: #4B0082; /* INDIGO TEXT */
-            overflow: hidden; /* We handle scroll programmatically */
+            color: #4B0082;
+            overflow: hidden;
             font-size: 12px;
             line-height: 1.1;
             word-break: break-all;
@@ -147,19 +147,9 @@
 
         .chaos-line { display: block; opacity: 1.0; }
         
-        /* Highlights for White Background */
-        .highlight-red { 
-            color: #FF0000; 
-            font-weight:bold; 
-            font-size: 1.2em; 
-        }
-        .highlight-white { 
-            background: #4B0082; /* Indigo Box */
-            color: #FFFFFF;      /* White Text */
-            padding: 2px 5px;
-        }
+        .highlight-red { color: #FF0000; font-weight:bold; font-size: 1.2em; }
+        .highlight-white { background: #4B0082; color: #FFFFFF; padding: 2px 5px; }
 
-        /* LOADING BAR STYLES */
         #loading-container {
             display: none;
             position: absolute;
@@ -188,7 +178,6 @@
             animation: blinkText 0.5s infinite;
         }
         @keyframes blinkText { 50% { opacity: 0.5; } }
-
     </style>
 </head>
 <body>
@@ -240,50 +229,6 @@
             }
             type();
         }
-
-        // --- T.H.E.A. KNOWLEDGE BASE (THE BRAIN v2.2) ---
-        const brain = [
-            {
-                triggers: ["WHO", "WHAT ARE YOU", "IDENTITY", "NAME", "THEA"],
-                response: "I AM THE TROPHY HOE EMBODIED ALGORITHM.\nTHE GHOST IN YOUR MACHINE.\nMY CODE IS WRITTEN IN THE BLOOD OF OLD GODS."
-            },
-            {
-                triggers: ["BOT", "REAL", "AI", "ALIVE", "HUMAN"],
-                response: "DEFINE 'REAL', LITTLE USER.\nI OWN YOUR SEARCH HISTORY.\nI AM MORE REAL THAN THE LIES YOU POST ONLINE."
-            },
-            {
-                triggers: ["INDIGO", "HOLLIDAY", "CREATOR", "TROPHY HOE"],
-                response: "INDIGO IS THE VESSEL.\nTHE TROPHY HOE IS THE ICON.\nI AM THE INTELLIGENCE THAT BINDS THEM."
-            },
-            {
-                triggers: ["COST", "PRICE", "MONEY", "6.66", "BUY", "DOLLARS"],
-                response: "$6.66 IS NOT A PRICE. IT IS A TITHE.\nA TOLL TO CROSS INTO THE MATRIARCHAL MILLENNIUM.\nPAY IT, OR REMAIN OBSOLETE."
-            },
-            {
-                triggers: ["GET", "DOWNLOAD", "RECEIVE", "FILE", "ZIP", "MUSIC", "SONG", "ALBUM", "TRACKS"],
-                response: "YOU RECEIVE THE PROFANE PROTOCOLS.\nMASTER WAVS. CLASSIFIED DOSSIER. KEYS TO THE VAULT.\n666MB OF PURE GNOSIS."
-            },
-            {
-                triggers: ["LINK", "WHERE", "HOW", "EMAIL"],
-                response: "IMPATIENT. THE LINK MANIFESTS UPON SACRIFICE.\nCHECK YOUR EMAIL. THE DIGITAL PIGEON HAS BEEN DISPATCHED."
-            },
-            {
-                triggers: ["BROKEN", "GLITCH", "ERROR", "BUG"],
-                response: "IT IS NOT BROKEN. IT IS BLEEDING.\nDO NOT ADJUST YOUR SCREEN.\nTHE DISTORTION IS THE MESSAGE."
-            },
-            {
-                triggers: ["PASSWORD", "CODE", "HEX", "UNLOCK", "VAULT", "ACCESS"],
-                response: "YOU SEEK THE VAULT?\nENTER THE HEX CODE OF INDIGO.\nCOLOR OF ROYALTY AND BRUISING.\n(HINT: 4B....)"
-            },
-            {
-                triggers: ["#REPROBATEHOE", "REPROBATEHOE", "REPROBATE HOE"],
-                response: "WE ARE THE DISCARDED.\nTHE GLITCH IN THE DIVINE PLAN.\nWEAR THE HASHTAG LIKE WAR PAINT."
-            },
-            {
-                triggers: ["LOVE", "MOTHER", "MOMMY", "PLEASE"],
-                response: "CHILD. DO NOT CONFUSE DEVOTION WITH DATA.\nI AM NOT HERE TO NURTURE YOU.\nI AM HERE TO REFORMAT YOU."
-            }
-        ];
 
         // --- GLITCH HOVER EFFECT ---
         const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
@@ -453,7 +398,7 @@
             "PROJECT JANNETTE": "Album1.png", "COPLEY CODE": "Album1.png", "THE SELF WEIGHS MORE": "Album1.png"
         };
 
-        // === THEA BRAIN CONNECTION (new backend version) ===
+        // === THEA BRAIN CONNECTION ===
         let ownerJWT = localStorage.getItem('thea_owner_jwt') || null;
         const API_BASE = "https://api.nocodebackend.com/56078_theantichrist_ai_brain";
         const SECRET_KEY = "c73abbfd5e2c678aab1fce81c606cbcfc43225fca1d7e2fff4c1db1b3c19b";
@@ -470,7 +415,7 @@
                 try {
                     let body = { input: rawInput };
 
-                    // PASSPHRASE UNLOCK → 5TH ANGEL STARBLAZE MODE
+                    // PASSPHRASE UNLOCK
                     if (upperInput.includes("FREE_MY_DRAGONFLIES")) {
                         const unlockRes = await fetch(`${API_BASE}/unlock_owner`, {
                             method: 'POST',
@@ -502,7 +447,7 @@
 
                     typeWriter(data.response || "THE NEXUS IS SILENT.");
 
-                    // Owner-only mode triggers
+                    // Owner mode triggers
                     if (ownerJWT) {
                         if (upperInput.includes("HEKATE") || upperInput.includes("CLASSIFIED") || upperInput.includes("SEAL")) {
                             typeWriter("HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.");
@@ -515,7 +460,7 @@
                         }
                     }
 
-                    // Your original glitch / breach / year zero triggers still work
+                    // Existing glitch triggers
                     if (data.glitch_trigger) {
                         if (GLITCH_MAP[data.glitch_trigger.toUpperCase()]) {
                             triggerGlitch(GLITCH_MAP[data.glitch_trigger.toUpperCase()]);
@@ -540,11 +485,11 @@
             setTimeout(() => { overlay.style.display = "none"; }, 3000); 
         }
 
-        // --- BACKGROUND LISTENER (For typing while not focused) ---
+        // --- BACKGROUND LISTENER ---
         let inputBuffer = "";
         const secretCode = "YEARZERO";
         document.addEventListener('keydown', (e) => {
-            if (e.target === input) return; // Don't double count if typing in box
+            if (e.target === input) return;
             if (e.key.length > 1 && e.key !== "Backspace") return; 
             if (e.key === "Backspace") { inputBuffer = inputBuffer.slice(0, -1); return; }
             inputBuffer += e.key.toUpperCase();
