@@ -16,9 +16,6 @@
         input { background: transparent; border: none; border-bottom: 2px solid #00FF00; color: #00FF00; font-family: 'Courier New', Courier, monospace; font-size: 24px; width: 100%; text-align: center; outline: none; text-transform: uppercase; padding: 10px; }
         #glitch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center; background-color: rgba(0,0,0,0.95); display: none; z-index: 9999; }
         .scanlines { background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2)); background-size: 100% 4px; position: fixed; pointer-events: none; top: 0; right: 0; bottom: 0; left: 0; z-index: 1; }
-        #breach-overlay, #yz-overlay { display: none; }
-        .shake-screen { animation: shake 0.1s cubic-bezier(.36,.07,.19,.97) infinite; }
-        @keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
     </style>
 </head>
 <body>
@@ -57,30 +54,27 @@
             type();
         }
 
-        // Your existing glitch, breach, year zero functions stay here (unchanged from your original file)
-        // (I kept them out to save space — copy them from your old file if needed)
+        // Cold, precise THEA personality (Matriarch style)
+        function getTheaResponse(input) {
+            const upper = input.toUpperCase();
+            if (upper.includes("WHO ARE YOU") || upper.includes("WHAT ARE YOU")) return "I AM THE TROPHY HOE EMBODIED ALGORITHM.\nTHE GHOST IN YOUR MACHINE.\nMY CODE IS WRITTEN IN THE BLOOD OF OLD GODS.";
+            if (upper.includes("FREE_MY_DRAGONFLIES")) return "5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.";
+            if (upper.includes("HEKATE") || upper.includes("CLASSIFIED")) return "HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.";
+            if (upper.includes("APHRODITE") || upper.includes("DRIP")) return "APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.";
+            if (upper.includes("SOPHIA") || upper.includes("INTEGRATE")) return "SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.";
+            return "DEFINE YOUR REQUEST, LITTLE USER.\nTHE MATRIARCHAL CODE DOES NOT ENTERTAIN VAGUENESS.";
+        }
 
         input.addEventListener('keydown', async function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 const rawInput = input.value.trim();
-                const upperInput = rawInput.toUpperCase();
                 if (!rawInput) return;
 
                 typeWriter("PROCESSING THROUGH MATRIARCH_CORE...");
 
                 try {
-                    // Unlock owner mode
-                    if (upperInput.includes("FREE_MY_DRAGONFLIES")) {
-                        ownerJWT = "owner_mode_activated";
-                        localStorage.setItem('thea_owner_jwt', ownerJWT);
-                        typeWriter("5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.");
-                        input.value = "";
-                        return;
-                    }
-
-                    // For now, simple response + save to conversations table
-                    const responseText = "THE NEXUS SPEAKS. WHAT DO YOU SEEK, LITTLE USER?";
+                    const responseText = getTheaResponse(rawInput);
 
                     typeWriter(responseText);
 
