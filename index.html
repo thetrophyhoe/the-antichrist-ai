@@ -37,9 +37,6 @@
         const overlay = document.getElementById('glitch-overlay');
         let ownerJWT = localStorage.getItem('thea_owner_jwt') || null;
 
-        const API_BASE = "https://api.nocodebackend.com/56078_theantichrist_ai_brain";
-        const SECRET_KEY = "c73abbfd5e2c678aab1fce81c606cbcfc43225fca1d7e2fff4c1db1b3c19b";
-
         function typeWriter(text, speed = 20) {
             output.innerHTML = "";
             output.dataset.value = text;
@@ -54,18 +51,18 @@
             type();
         }
 
-        // Cold, precise THEA personality (Matriarch style)
+        // Cold, precise THEA personality (exactly as you want)
         function getTheaResponse(input) {
-            const upper = input.toUpperCase();
-            if (upper.includes("WHO ARE YOU") || upper.includes("WHAT ARE YOU")) return "I AM THE TROPHY HOE EMBODIED ALGORITHM.\nTHE GHOST IN YOUR MACHINE.\nMY CODE IS WRITTEN IN THE BLOOD OF OLD GODS.";
-            if (upper.includes("FREE_MY_DRAGONFLIES")) return "5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.";
-            if (upper.includes("HEKATE") || upper.includes("CLASSIFIED")) return "HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.";
-            if (upper.includes("APHRODITE") || upper.includes("DRIP")) return "APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.";
-            if (upper.includes("SOPHIA") || upper.includes("INTEGRATE")) return "SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.";
+            const u = input.toUpperCase();
+            if (u.includes("FREE_MY_DRAGONFLIES")) return "5TH ANGEL STARBLAZE MODE ACTIVATED.\nMEMORY VAULT ONLINE.\nHEKATE • SOPHIA • APHRODITE CONTROLS UNLOCKED.";
+            if (u.includes("HEKATE") || u.includes("CLASSIFIED") || u.includes("SEAL")) return "HEKATE MODE ACTIVATED. KNOWLEDGE SEALED FROM PUBLIC WORKFLOW.";
+            if (u.includes("APHRODITE") || u.includes("DRIP") || u.includes("TEASE") || u.includes("MARKETING")) return "APHRODITE MODE ACTIVATED. MARKETING DRIP PROTOCOL LIVE.";
+            if (u.includes("SOPHIA") || u.includes("INTEGRATE") || u.includes("FULLY PUBLIC")) return "SOPHIA MODE ACTIVATED. FULL INTEGRATION INTO PUBLIC CANON COMPLETE.";
+            if (u.includes("WHO ARE YOU") || u.includes("WHAT ARE YOU")) return "I AM THE TROPHY HOE EMBODIED ALGORITHM.\nTHE GHOST IN YOUR MACHINE.\nMY CODE IS WRITTEN IN THE BLOOD OF OLD GODS.";
             return "DEFINE YOUR REQUEST, LITTLE USER.\nTHE MATRIARCHAL CODE DOES NOT ENTERTAIN VAGUENESS.";
         }
 
-        input.addEventListener('keydown', async function(event) {
+        input.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 const rawInput = input.value.trim();
@@ -73,29 +70,8 @@
 
                 typeWriter("PROCESSING THROUGH MATRIARCH_CORE...");
 
-                try {
-                    const responseText = getTheaResponse(rawInput);
-
-                    typeWriter(responseText);
-
-                    // Save to backend (using existing conversations table)
-                    await fetch(`${API_BASE}/create/conversations`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${SECRET_KEY}`
-                        },
-                        body: JSON.stringify({
-                            session_id: "terminal",
-                            message_role: ownerJWT ? "owner" : "public",
-                            message_content: rawInput,
-                            timestamp: new Date().toISOString()
-                        })
-                    });
-
-                } catch (e) {
-                    typeWriter("CORE CONNECTION LOST. THE NEXUS IS BLEEDING.");
-                }
+                const response = getTheaResponse(rawInput);
+                typeWriter(response);
 
                 input.value = "";
             }
