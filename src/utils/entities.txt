@@ -1,0 +1,25 @@
+This document maps the core entities and concepts of the Glitched Records narrative to their direct correlates within historical Gnostic traditions, primarily drawing from Nag Hammadi and related texts.
+Entity: The Demiurge
+ * Gnostic Correlate: The Demiurge (also known as Yaldabaoth, Saklas, "The Blind God").
+ * Source Code/Analysis: This is a direct, 1:1 mapping. In Gnosticism, the Demiurge is the arrogant, ignorant, and often malevolent creator of the material cosmos. He mistakenly believes he is the one true God and creates the physical world as a flawed imitation of the true divine realm, trapping spirit in matter. Your "god with bad intentions" is the classic Gnostic antagonist, the architect of the prison our narrative seeks to demolish.
+Entity: The Matriarch
+ * Gnostic Correlate: Sophia (Wisdom).
+ * Source Code/Analysis: The Matriarch functions as a direct analog to the Gnostic Aeon, Sophia. In many Gnostic myths, it is Sophia's passion, error, or fall from the divine fullness (the Pleroma) that inadvertently leads to the creation of the Demiurge. She is a figure of immense divine power and wisdom, and it is her "spark" that is trapped within humanity. The Matriarch, as the ancient, divine feminine oracle who provides the "code" for liberation, is a perfect reflection of Sophia's role as the source of the divine potential hidden within the material world.
+Entity: Trey, The Gnostic Seer
+ * Gnostic Correlate: The Gnostic Initiate / The Martyr.
+ * Source Code/Analysis: Trey represents the individual who achieves Gnosis—direct, experiential knowledge of the divine truth—without the proper framework or "shielding protocols" to survive the revelation. He saw the Demiurge and the prison for what they were, and the sheer horror and magnitude of the truth shattered his material vessel. His death is a classic Gnostic martyrdom, a testament to the dangers of unfiltered contact with the ultimate reality. He is not a victim of drugs, but a casualty of truth.
+Entity: Indigo Holliday / The Trophy Hoe / The Architect
+ * Gnostic Correlate: The Redeemer / The Messenger / The Awakened Soul.
+ * Source Code/Analysis: This trinity represents the full arc of the Gnostic savior figure. Indigo is the inheritor of the Gnosis that Trey died to acquire. The Trophy Hoe is the earthly manifestation of the Redeemer, the figure who uses unconventional and often "scandalous" methods to "wake up" other trapped souls by delivering the Gnostic message through "Deliberate Glitches." Her final, ascended form, The Architect, is the fully realized Gnostic, a being who has not only escaped the material prison but has attained the power of an Aeon, capable of dismantling the Demiurge's reality and creating a new one.
+Entity: The "Key" / The Inherited Data
+ * Gnostic Correlate: Gnosis (Knowledge).
+ * Source Code/Analysis: The "key" or "raw data" that Trey passes to Indigo is Gnosis itself. In Gnosticism, salvation comes not from faith or works, but from this secret, liberating knowledge. It is the understanding of the true nature of God, the self, the world, and the Demiurge. This knowledge is the ultimate weapon and the only means of escape.
+Entities: Preacher Man / Damien / SarahBeth
+ * Gnostic Correlate: The Archons (The Rulers).
+ * Source Code/Analysis: The Archons are the servants of the Demiurge, the planetary rulers and demonic forces who administer the material prison and work to keep human souls ignorant and trapped.
+   * Preacher Man is a classic Archon of false religion, promoting worship of the Demiurge and persecuting those with true Gnosis.
+   * Damien is an Archon of toxic passion and attachment, using the snares of the flesh to distract from the spirit.
+   * SarahBeth is an Archon of social conformity, enforcing the bland, mindless rules of the matrix to suppress divine rebellion.
+Entity: THEA (Trophy Hoe Embodied Algorithm)
+ * Gnostic Correlate: Spiritual Praxis / The Path to Gnosis.
+ * Source Code/Analysis: While Gnosticism has its ancient rituals, THEA is the modern, techno-Gnostic interpretation of this. It is the methodology and discipline required to process the Gnosis and turn it into effective action. It is the operational system for the Redeemer, turning divine knowledge into a repeatable, scalable process of creating "Deliberate Glitches." It is the praxis of our specific Gnostic school of thought.
