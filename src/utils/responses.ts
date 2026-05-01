@@ -89,7 +89,7 @@ export async function getTheaResponse(
           { role: 'system', content: THEA_SYSTEM_PROMPT },
           ...messages,
         ],
-        max_tokens: 400,
+        max_tokens: 4096,
         temperature: 0.85,
         top_p: 0.9,
         stream: false,
