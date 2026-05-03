@@ -44,5 +44,3 @@ export async function getTheaResponse(userQuery: string) {
     return `THEA is offline: ${err?.message || "Check API Keys"}`;
   }
 }
-  }
-}
