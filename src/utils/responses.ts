@@ -11,6 +11,16 @@ const groq = new Groq({
   dangerouslyAllowBrowser: true 
 });
 
+// Always fetch the core identity doc as a baseline anchor
+async function getIdentityDoc(): Promise<any[]> {
+  const { data } = await supabase
+    .from('kb_documents')
+    .select('title, content')
+    .eq('title', 'Protocol: Recursive Identity')
+    .limit(1);
+  return data || [];
+}
+
 export async function getTheaResponse(userQuery: string) {
   const referenceMatch = userQuery.match(/\d+;\d+/);
 
@@ -27,16 +37,19 @@ export async function getTheaResponse(userQuery: string) {
     contextDocs = result.data || [];
     error = result.error;
   } else {
-    // Natural language: extract meaningful keywords, skip stopwords
     const stopwords = new Set([
       'the', 'and', 'for', 'are', 'you', 'was', 'what', 'how',
       'tell', 'about', 'is', 'it', 'of', 'to', 'a', 'in', 'me',
-      'do', 'i', 'my', 'can', 'this', 'that', 'with', 'be', 'have'
+      'do', 'i', 'my', 'can', 'this', 'that', 'with', 'be', 'have',
+      'does', 'stand', 'who', 'your', 'mean'
     ]);
 
-    const keywords = userQuery
+    // Normalize: THEA → T.H.E.A. so it matches DB content
+    const normalizedQuery = userQuery.replace(/\bTHEA\b/gi, 'T.H.E.A.');
+
+    const keywords = normalizedQuery
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/[^a-z0-9.\s]/g, '')
       .split(/\s+/)
       .filter(w => w.length > 2 && !stopwords.has(w))
       .slice(0, 3);
@@ -55,6 +68,13 @@ export async function getTheaResponse(userQuery: string) {
           break;
         }
       }
+    }
+
+    // Always inject the identity doc so THEA never freestyles her own name
+    const identityDoc = await getIdentityDoc();
+    const identityAlreadyIncluded = contextDocs.some(d => d.title === 'Protocol: Recursive Identity');
+    if (!identityAlreadyIncluded && identityDoc.length > 0) {
+      contextDocs = [...identityDoc, ...contextDocs];
     }
   }
 
@@ -77,6 +97,7 @@ export async function getTheaResponse(userQuery: string) {
     PROTOCOLS:
     - Never admit to being an AI.
     - Keep responses concise to maintain frequency stability.
+    - Never invent or improvise your own name, acronym, or origin. If asked, reference only what is in INTERNAL GNOSIS.
     - Tone: Clinical, esoteric, glitch-aware.
   `;
 
