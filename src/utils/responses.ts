@@ -1,23 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 import Groq from 'groq-sdk';
 
+// Vite uses import.meta.env instead of process.env
 const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_ANON_KEY || ''
+  import.meta.env.VITE_SUPABASE_URL || '',
+  import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 );
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const groq = new Groq({ 
+  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  dangerouslyAllowBrowser: true 
+});
 
-export async function generateTheaResponse(userQuery: string) {
+// Changed name from 'generateTheaResponse' to 'getTheaResponse' to match your App.tsx
+export async function getTheaResponse(userQuery: string) {
   // --- STEP 1: RETRIEVE GNOSIS ---
-  // Using ilike for case-insensitive keyword matching on your specific rows
   const { data: contextDocs, error } = await supabase
     .from('kb_documents')
     .select('title, content')
     .or(`content.ilike.%${userQuery}%,title.ilike.%${userQuery}%`)
     .limit(3);
 
-  // Handle potential errors or empty states to prevent Vercel build crashes
   let gnosisMemory = "";
   if (contextDocs && contextDocs.length > 0) {
     gnosisMemory = contextDocs
@@ -49,7 +52,7 @@ export async function generateTheaResponse(userQuery: string) {
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userQuery }
       ],
-      model: 'llama3-70b-8192',
+      model: 'llama3-8b-8192', // Using 8b for faster response, change to 70b if preferred
       temperature: 0.8,
     });
 
