@@ -11,12 +11,18 @@ const groq = new Groq({
   dangerouslyAllowBrowser: true 
 });
 
+// HARDENED: More tolerant anchor loading
 async function getAnchorDocs(): Promise<any[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('kb_documents')
     .select('title, content')
-    .in('title', ['Protocol: Recursive Identity', 'Entities'])
+    .or('title.ilike.%Protocol%Recursive%Identity%,title.ilike.%Entities%')
     .limit(2);
+
+  if (error) {
+    console.error('Anchor docs error:', error);
+    return [];
+  }
   return data || [];
 }
 
@@ -27,7 +33,7 @@ function parseReference(query: string): { book: string; ref: string } | null {
   const bookHint = match[1].trim().toLowerCase();
   const chapter = match[2].padStart(2, '0');
   const verse = match[3].padStart(2, '0');
-  const ref = `${chapter};${verse}`;
+  const ref = `\( {chapter}; \){verse}`;
 
   const bookMap: Record<string, string> = {
     'parables': 'PARABLES',
@@ -109,40 +115,44 @@ export async function getTheaResponse(userQuery: string) {
       }];
     }
   } else {
+    // Primary FTS
     const { data: ftsResults, error: ftsError } = await supabase
       .rpc('search_documents', {
         query_text: userQuery,
-        match_count: 4
+        match_count: 5
       });
 
     if (!ftsError && ftsResults && ftsResults.length > 0) {
       contextDocs = ftsResults;
     } else {
+      // Hardened keyword fallback
       const stopwords = new Set([
         'the','and','for','are','you','was','what','how','tell','about',
         'is','it','of','to','a','in','me','do','i','my','can','this',
-        'that','with','be','have','does','stand','who','your','mean','means'
+        'that','with','be','have','does','stand','who','your','mean','means',
+        'about','from','into','over','under','again','then','once'
       ]);
 
       const keywords = userQuery
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, '')
         .split(/\s+/)
-        .filter(w => w.length > 2 && !stopwords.has(w))
-        .slice(0, 4);
+        .filter(w => w.length > 1 && !stopwords.has(w))
+        .slice(0, 6);
 
       for (const keyword of keywords) {
         const { data } = await supabase
           .from('kb_documents')
           .select('title, content')
-          .or(`content.ilike.%${keyword}%,title.ilike.%${keyword}%`)
-          .limit(3);
+          .or(`content.ilike.%\( {keyword}%,title.ilike.% \){keyword}%`)
+          .limit(4);
         if (data && data.length > 0) {
           contextDocs = [...contextDocs, ...data];
-          if (contextDocs.length >= 4) break;
+          if (contextDocs.length >= 6) break;
         }
       }
 
+      // Deduplicate
       const seen = new Set<string>();
       contextDocs = contextDocs.filter(d => {
         if (seen.has(d.title)) return false;
@@ -152,6 +162,7 @@ export async function getTheaResponse(userQuery: string) {
     }
   }
 
+  // Always inject anchors (hardened)
   const anchorDocs = await getAnchorDocs();
   const existingTitles = new Set(contextDocs.map((d: any) => d.title));
   const freshAnchors = anchorDocs.filter((d: any) => !existingTitles.has(d.title));
@@ -159,10 +170,10 @@ export async function getTheaResponse(userQuery: string) {
 
   const gnosisMemory = allDocs.length
     ? allDocs.map((doc: any) => {
-        const text = doc.content.length > 3000
-          ? doc.content.substring(0, 3000) + '...'
+        const text = doc.content.length > 3200
+          ? doc.content.substring(0, 3200) + '...'
           : doc.content;
-        return `[${doc.title}]:\n${text}`;
+        return `[\( {doc.title}]:\n \){text}`;
       }).join('\n\n---\n\n')
     : 'VOID STATE: No gnosis found for this query.';
 
