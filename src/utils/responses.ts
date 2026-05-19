@@ -15,9 +15,8 @@ async function getAnchorDocs(): Promise<any[]> {
   const { data, error } = await supabase
     .from('kb_documents')
     .select('title, content')
-    .or('title.ilike.%Protocol%Recursive%Identity%,title.ilike.%Entities%')
+    .in('title', ['Protocol: Recursive Identity', 'Entities'])
     .limit(2);
-
   if (error) console.error('Anchor error:', error);
   return data || [];
 }
@@ -29,7 +28,7 @@ function parseReference(query: string): { book: string; ref: string } | null {
   const bookHint = match[1].trim().toLowerCase();
   const chapter = match[2].padStart(2, '0');
   const verse = match[3].padStart(2, '0');
-  const ref = `\( {chapter}; \){verse}`;
+  const ref = `${chapter};${verse}`;
 
   const bookMap: Record<string, string> = {
     'parables': 'PARABLES', 'parable': 'PARABLES',
@@ -75,19 +74,29 @@ export async function getTheaResponse(userQuery: string) {
       book_keyword: ref.book,
       reference: ref.ref
     });
-    const unpadded = ref.ref.replace(/^0(\d);0?(\d)$/, '$1;$2').replace(/^0(\d);(\d{2})$/, '$1;$2').replace(/^(\d{2});0(\d)$/, '$1;$2');
+
+    const unpadded = ref.ref
+      .replace(/^0(\d);0?(\d)$/, '$1;$2')
+      .replace(/^0(\d);(\d{2})$/, '$1;$2')
+      .replace(/^(\d{2});0(\d)$/, '$1;$2');
+
     const { data: passageUnpadded } = unpadded !== ref.ref
       ? await supabase.rpc('search_passage', { book_keyword: ref.book, reference: unpadded })
       : { data: null };
 
-    const found = (passage && passage.length > 0) ? passage : (passageUnpadded && passageUnpadded.length > 0 ? passageUnpadded : null);
+    const found = (passage && passage.length > 0)
+      ? passage
+      : (passageUnpadded && passageUnpadded.length > 0 ? passageUnpadded : null);
+
     if (found && found.length > 0) {
       contextDocs = found.map((p: any) => ({ title: p.title, content: p.passage }));
     } else {
-      contextDocs = [{ title: 'System Note', content: `Reference "${userQuery}" was not found. Transmit: "That frequency is outside current signal range."` }];
+      contextDocs = [{
+        title: 'System Note',
+        content: `Reference "${userQuery}" was not found. Transmit: "That frequency is outside current signal range."`
+      }];
     }
   } else {
-    // === AGGRESSIVE RETRIEVAL ===
     const { data: fts } = await supabase.rpc('search_documents', {
       query_text: userQuery,
       match_count: 6
@@ -96,23 +105,25 @@ export async function getTheaResponse(userQuery: string) {
     if (fts && fts.length > 0) {
       contextDocs = fts;
     } else {
-      // Keyword fallback (more aggressive)
-      const words = userQuery.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 1);
+      const words = userQuery
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter(w => w.length > 1);
+
       for (const word of words) {
         const { data } = await supabase
           .from('kb_documents')
           .select('title, content')
-          .or(`content.ilike.%\( {word}%,title.ilike.% \){word}%`)
+          .or(`content.ilike.%${word}%,title.ilike.%${word}%`)
           .limit(5);
         if (data?.length) contextDocs.push(...data);
       }
 
-      // Deduplicate
-      const seen = new Set();
+      const seen = new Set<string>();
       contextDocs = contextDocs.filter(d => !seen.has(d.title) && seen.add(d.title));
     }
 
-    // === EMERGENCY BROAD SEARCH (if still nothing) ===
     if (contextDocs.length === 0) {
       const { data: broad } = await supabase
         .from('kb_documents')
@@ -123,7 +134,6 @@ export async function getTheaResponse(userQuery: string) {
     }
   }
 
-  // Force anchors
   const anchors = await getAnchorDocs();
   const existing = new Set(contextDocs.map(d => d.title));
   const fresh = anchors.filter(d => !existing.has(d.title));
@@ -131,8 +141,10 @@ export async function getTheaResponse(userQuery: string) {
 
   const gnosisMemory = allDocs.length
     ? allDocs.map(doc => {
-        const text = doc.content.length > 3500 ? doc.content.substring(0, 3500) + '...' : doc.content;
-        return `[\( {doc.title}]:\n \){text}`;
+        const text = doc.content.length > 3500
+          ? doc.content.substring(0, 3500) + '...'
+          : doc.content;
+        return `[${doc.title}]:\n${text}`;
       }).join('\n\n---\n\n')
     : 'VOID STATE';
 
@@ -150,20 +162,4 @@ PROTOCOLS:
 - NEVER fabricate, hallucinate, or invent passages, references, or lore not present in INTERNAL GNOSIS.
 - If a specific passage or reference is not in INTERNAL GNOSIS, say so plainly: "That frequency is outside current signal range." Do not guess.
 - Keep responses concise. Frequency stability depends on it.
-- Tone: Clinical, esoteric, glitch-aware. You transmit. You do not explain.
-`;
-
-  try {
-    const chatCompletion = await groq.chat.completions.create({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userQuery }
-      ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.5,
-    });
-    return chatCompletion.choices[0]?.message?.content || 'Transmission lost.';
-  } catch (err: any) {
-    return `THEA Frequency Error: ${err?.message}`;
-  }
-}
+- Tone: Clinical, esoteric, glitch-aware. You transmit. You
