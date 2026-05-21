@@ -3,7 +3,7 @@ import GeometricBackground from './components/GeometricBackground';
 import THEAEntity from './components/THEAEntity';
 import MessageDisplay, { Message } from './components/MessageDisplay';
 import ChatInput from './components/ChatInput';
-import { getTheaResponse } from './utils/responses';
+import { getTheaResponse } from './services/thea';
 
 function useSystemClock() {
   const [time, setTime] = useState(() => new Date().toLocaleTimeString([], { hour12: false }));
