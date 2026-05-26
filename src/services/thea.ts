@@ -16,5 +16,5 @@ export async function getTheaResponse(
   }
 
   const data = await response.json();
-  return data.response as string;
+  return data.text as string;
 }
