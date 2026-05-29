@@ -1,9 +1,12 @@
-import { HfInference } from '@huggingface/inference';
+import Groq from 'groq-sdk';
 import { retrieveContext, formatContextForPrompt } from './rag';
 
-const client = new HfInference(import.meta.env.VITE_HF_API_KEY);
+const client = new Groq({
+  apiKey: import.meta.env.VITE_GROQ_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
 
-const MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+const MODEL = 'llama-3.3-70b-versatile';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -67,7 +70,12 @@ export async function sendMessage(
 
   if (onStream) {
     let fullContent = '';
-    const stream = client.chatCompletionStream({ model: MODEL, messages, max_tokens: 1024 });
+    const stream = await client.chat.completions.create({
+      model: MODEL,
+      messages,
+      max_tokens: 1024,
+      stream: true,
+    });
     for await (const chunk of stream) {
       const token = chunk.choices[0]?.delta?.content ?? '';
       if (token) { onStream(token); fullContent += token; }
@@ -75,6 +83,10 @@ export async function sendMessage(
     return { content: fullContent, sources };
   }
 
-  const response = await client.chatCompletion({ model: MODEL, messages, max_tokens: 1024 });
+  const response = await client.chat.completions.create({
+    model: MODEL,
+    messages,
+    max_tokens: 1024,
+  });
   return { content: response.choices[0]?.message?.content ?? '', sources };
 }
