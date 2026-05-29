@@ -3,7 +3,7 @@ import GeometricBackground from './components/GeometricBackground';
 import THEAEntity from './components/THEAEntity';
 import MessageDisplay, { Message } from './components/MessageDisplay';
 import ChatInput from './components/ChatInput';
-import { getTheaResponse } from './services/thea';
+import { sendMessage } from './services/thea';
 
 function useSystemClock() {
   const [time, setTime] = useState(() => new Date().toLocaleTimeString([], { hour12: false }));
@@ -64,7 +64,6 @@ export default function App() {
   const [msgCount, setMsgCount] = useState(0);
   const clock = useSystemClock();
 
-  // Keep conversation history for context
   const historyRef = useRef<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
 
   const triggerFlicker = useCallback(() => {
@@ -87,30 +86,35 @@ export default function App() {
       setIsProcessing(true);
       setMsgCount((c) => c + 1);
 
-      // Add to history before calling
       historyRef.current = [...historyRef.current, { role: 'user', content: text }];
 
       try {
-        const response = await getTheaResponse(text, historyRef.current.slice(0, -1));
+        const response = await sendMessage(text, historyRef.current.slice(0, -1));
         triggerFlicker();
 
         const theaMsg: Message = {
           id: `t-${Date.now()}`,
           role: 'thea',
-          text: response,
+          text: response.content,
           timestamp: Date.now(),
         };
 
         setMessages((prev) => [...prev, theaMsg]);
         setMsgCount((c) => c + 1);
 
-        // Add THEA response to history
-        historyRef.current = [...historyRef.current, { role: 'assistant', content: response }];
+        historyRef.current = [...historyRef.current, { role: 'assistant', content: response.content }];
 
-        // Cap history at 12 messages to avoid token bloat
         if (historyRef.current.length > 12) {
           historyRef.current = historyRef.current.slice(-12);
         }
+      } catch (err) {
+        const errorMsg: Message = {
+          id: `e-${Date.now()}`,
+          role: 'thea',
+          text: '[ TRANSMISSION INTERRUPTED — signal lost ]',
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, errorMsg]);
       } finally {
         setIsProcessing(false);
       }
@@ -132,7 +136,6 @@ export default function App() {
     >
       <GeometricBackground />
 
-      {/* HUD overlays */}
       <HUDCorner corner="tl">
         <HUDText>theantichrist.ai</HUDText>
         <HUDText dim>v2.1.0 · neural core</HUDText>
@@ -209,11 +212,32 @@ export default function App() {
               background: 'linear-gradient(90deg, transparent, rgba(75,0,130,0.5), transparent)',
             }}
           />
+
+          {/* Footer advisory */}
+          <div style={{
+            position: 'absolute',
+            bottom: 60,
+            left: 0,
+            right: 0,
+            textAlign: 'center',
+            padding: '0 12px',
+          }}>
+            <div style={{
+              fontFamily: "'Space Mono', monospace",
+              fontWeight: 400,
+              fontSize: 7,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              color: 'rgba(229,228,226,0.12)',
+              lineHeight: 1.6,
+            }}>
+              Artistic AI entity. Themes may include<br />adult, occult, and transgressive elements.
+            </div>
+          </div>
         </div>
 
         {/* Right: Chat panel */}
         <div className="chat-panel">
-          {/* Panel header */}
           <div
             style={{
               flexShrink: 0,
