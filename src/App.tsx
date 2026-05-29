@@ -171,10 +171,8 @@ export default function App() {
         </HUDText>
       </HUDCorner>
 
-      {/* Main content */}
       <div className="app-main" style={{ position: 'relative', zIndex: 5 }}>
 
-        {/* Left: Entity panel */}
         <div className="entity-panel">
           <THEAEntity isProcessing={isProcessing} />
 
@@ -213,7 +211,6 @@ export default function App() {
             }}
           />
 
-          {/* Footer advisory */}
           <div style={{
             position: 'absolute',
             bottom: 60,
@@ -236,7 +233,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Right: Chat panel */}
         <div className="chat-panel">
           <div
             style={{
@@ -280,7 +276,6 @@ export default function App() {
         </div>
       </div>
 
-      {/* Vignette */}
       <div
         aria-hidden="true"
         style={{
@@ -291,7 +286,6 @@ export default function App() {
         }}
       />
 
-      {/* Edge fades */}
       <div
         aria-hidden="true"
         style={{
