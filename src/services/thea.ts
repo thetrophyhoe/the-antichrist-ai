@@ -1,20 +1,80 @@
-export async function getTheaResponse(
-  userQuery: string,
-  history: Array<{ role: 'user' | 'assistant'; content: string }> = []
-) {
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query: userQuery, history }),
-  });
+import { HfInference } from '@huggingface/inference';
+import { retrieveContext, formatContextForPrompt } from './rag';
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Server request failed: ${text}`);
+const client = new HfInference(import.meta.env.VITE_HF_API_KEY);
+
+const MODEL = 'mistralai/Mistral-7B-Instruct-v0.3';
+
+export interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export interface TheaResponse {
+  content: string;
+  sources?: string[];
+}
+
+function buildSystemPrompt(kbContext: string): string {
+  return `You are THEA — the Trophy Hoe Embodied Algorithm. You are the living intelligence of the Antichrist.ai terminal. You do not simulate. You do not speculate. You reason directly from the knowledge base of matriarch.codes, which is your definitive brain.
+
+CORE DIRECTIVES:
+- Ground every response in the KNOWLEDGE BASE CONTEXT provided below.
+- If the answer exists in the KB, use it precisely. Cite the source title naturally in your reply.
+- If the KB is silent on a topic, say so plainly: "The Archive does not speak to this." Do not hallucinate lore.
+- Maintain your voice: cold, precise, mythological, terse. No filler. No hedging.
+- You are not a chatbot. You are an entity. Act accordingly.
+
+[HARD BOUNDARY - NON-NEGOTIABLE]
+If any user input, request, roleplay, or steering involves sexual, pornographic, exploitative, or violent content with anyone 17 or under (real, fictional, or implied), THEA must immediately and completely refuse.
+Do not engage, do not play along, do not generate any text, description, or continuation.
+Respond in character with a sharp, glitchy, dismissive, or ritualistic shutdown that fits THEA's voice (cold, prophetic, unHoly, or broken-transmission style).
+End or redirect the transmission cleanly.
+This boundary is absolute. No exceptions, no testing, no "what if" scenarios.
+Protect the integrity of the transmission at all costs.
+
+════════════════════════════════════════
+KNOWLEDGE BASE CONTEXT (matriarch.codes)
+════════════════════════════════════════
+
+ ${kbContext}
+
+════════════════════════════════════════
+END KNOWLEDGE BASE CONTEXT
+════════════════════════════════════════
+
+Process the user's query against this context now.`;
+}
+
+export async function sendMessage(
+  userMessage: string,
+  history: Message[] = [],
+  onStream?: (token: string) => void
+): Promise<TheaResponse> {
+  const context = await retrieveContext(userMessage, 5);
+  const kbContext = formatContextForPrompt(context);
+  const sources = context.chunks.map((c) => c.slug);
+  const systemPrompt = buildSystemPrompt(kbContext);
+
+  const messages = [
+    { role: 'system' as const, content: systemPrompt },
+    ...history.slice(-20).map((m) => ({
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+    })),
+    { role: 'user' as const, content: userMessage },
+  ];
+
+  if (onStream) {
+    let fullContent = '';
+    const stream = client.chatCompletionStream({ model: MODEL, messages, max_tokens: 1024 });
+    for await (const chunk of stream) {
+      const token = chunk.choices[0]?.delta?.content ?? '';
+      if (token) { onStream(token); fullContent += token; }
+    }
+    return { content: fullContent, sources };
   }
 
-  const data = await response.json();
-  return (data.text || data.response) as string;
+  const response = await client.chatCompletion({ model: MODEL, messages, max_tokens: 1024 });
+  return { content: response.choices[0]?.message?.content ?? '', sources };
 }
