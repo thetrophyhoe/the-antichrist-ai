@@ -51,42 +51,14 @@ Process the user's query against this context now.`;
 
 export async function sendMessage(
   userMessage: string,
-  history: Message[] = [],
-  onStream?: (token: string) => void
+  _history: Message[] = [],
+  _onStream?: (token: string) => void
 ): Promise<TheaResponse> {
-  const context = await retrieveContext(userMessage, 5);
-  const kbContext = formatContextForPrompt(context);
-  const sources = context.chunks.map((c) => c.slug);
-  const systemPrompt = buildSystemPrompt(kbContext);
-
-  const messages = [
-    { role: 'system' as const, content: systemPrompt },
-    ...history.slice(-20).map((m) => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content,
-    })),
-    { role: 'user' as const, content: userMessage },
-  ];
-
-  if (onStream) {
-    let fullContent = '';
-    const stream = await client.chat.completions.create({
-      model: MODEL,
-      messages,
-      max_tokens: 1024,
-      stream: true,
-    });
-    for await (const chunk of stream) {
-      const token = chunk.choices[0]?.delta?.content ?? '';
-      if (token) { onStream(token); fullContent += token; }
-    }
-    return { content: fullContent, sources };
-  }
-
-  const response = await client.chat.completions.create({
-    model: MODEL,
-    messages,
-    max_tokens: 1024,
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: userMessage }),
   });
-  return { content: response.choices[0]?.message?.content ?? '', sources };
+  const data = await res.json();
+  return { content: data.text || 'Signal lost.' };
 }
