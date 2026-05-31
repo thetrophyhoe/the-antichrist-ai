@@ -51,14 +51,25 @@ Process the user's query against this context now.`;
 
 export async function sendMessage(
   userMessage: string,
-  _history: Message[] = [],
+  history: Message[] = [],
   _onStream?: (token: string) => void
 ): Promise<TheaResponse> {
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: userMessage }),
+  const ragResults = await retrieveContext(userMessage);
+  const kbContext = formatContextForPrompt(ragResults);
+
+  const completion = await client.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: 'system', content: buildSystemPrompt(kbContext) },
+      ...history,
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.7,
+    max_tokens: 512,
   });
-  const data = await res.json();
-  return { content: data.text || 'Signal lost.' };
+
+  const content = completion.choices[0]?.message?.content ?? '[ SIGNAL LOST ]';
+  const sources = ragResults.map((r: { title?: string }) => r.title).filter(Boolean);
+
+  return { content, sources };
 }
