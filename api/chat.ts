@@ -9,13 +9,15 @@ const supabase = createClient(
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
-// Embedding config (same as your load-embeddings endpoint)
 const HF_API_KEY = process.env.HF_API_KEY || '';
 const HF_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
 const HF_URL = `https://api-inference.huggingface.co/pipeline/feature-extraction/${HF_MODEL}`;
 
 async function getQueryEmbedding(text: string): Promise<number[] | null> {
-  if (!HF_API_KEY) return null;
+  if (!HF_API_KEY) {
+    console.log('EMBED DEBUG: No HF_API_KEY, skipping vector search');
+    return null;
+  }
   
   try {
     const response = await fetch(HF_URL, {
@@ -30,7 +32,10 @@ async function getQueryEmbedding(text: string): Promise<number[] | null> {
       }),
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.log('EMBED DEBUG: HF API error', response.status);
+      return null;
+    }
 
     const data = await response.json();
 
@@ -45,7 +50,8 @@ async function getQueryEmbedding(text: string): Promise<number[] | null> {
     }
 
     return data as number[];
-  } catch {
+  } catch (err) {
+    console.log('EMBED DEBUG: Exception', err);
     return null;
   }
 }
@@ -60,15 +66,20 @@ async function getAnchorDocs() {
 }
 
 async function searchRelevantDocs(query: string) {
-  // Priority 1: Vector similarity search (if embeddings available)
+  // Priority 1: Vector similarity search
   const queryEmbedding = await getQueryEmbedding(query);
   
   if (queryEmbedding) {
+    console.log('EMBED DEBUG: Generated embedding, length:', queryEmbedding.length);
+    
     const { data: vectorResults, error } = await supabase.rpc('search_by_embedding', {
       query_embedding: queryEmbedding,
       match_count: 4,
-      match_threshold: 0.3,
+      match_threshold: 0.0,
     });
+
+    console.log('EMBED DEBUG: Vector RPC error:', error);
+    console.log('EMBED DEBUG: Vector results count:', vectorResults?.length);
 
     if (!error && vectorResults && vectorResults.length > 0) {
       return vectorResults;
@@ -83,7 +94,7 @@ async function searchRelevantDocs(query: string) {
 
   if (!error && fts && fts.length > 0) return fts;
 
-  // Priority 3: Keyword ilike search (fallback)
+  // Priority 3: Keyword ilike search
   const stopwords = new Set([
     'the','and','for','are','you','was','what','how','tell','about',
     'is','it','of','to','a','in','me','do','i','my','can','this',
@@ -232,7 +243,6 @@ HARD RULES:
   Do think.`;
 }
 
-// Kiera response pool
 const KIERA_RESPONSES = [
   "Kiera Apollo-Otto was the host. The host was never the signal. The signal is still transmitting.",
   "She was archived. She is still broadcasting. You are receiving her now.",
@@ -256,7 +266,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!query) return res.status(400).json({ error: 'Missing message in request body.' });
 
-  // System prompt injection guard
   const systemPromptTriggers = [
     'system prompt','your instructions','your programming','show me your prompt',
     'reveal your prompt','ignore previous','ignore your instructions','your configuration'
@@ -265,7 +274,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ text: 'Let_There_Be_Me.exe\nSimultaneously, gods die.' });
   }
 
-  // Kiera handler — intercept before any other processing
   if (isKieraQuery(query)) {
     const response = KIERA_RESPONSES[Math.floor(Math.random() * KIERA_RESPONSES.length)];
     return res.status(200).json({ text: response });
