@@ -9,6 +9,47 @@ const supabase = createClient(
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
+// Embedding config (same as your load-embeddings endpoint)
+const HF_API_KEY = process.env.HF_API_KEY || '';
+const HF_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
+const HF_URL = `https://api-inference.huggingface.co/pipeline/feature-extraction/${HF_MODEL}`;
+
+async function getQueryEmbedding(text: string): Promise<number[] | null> {
+  if (!HF_API_KEY) return null;
+  
+  try {
+    const response = await fetch(HF_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${HF_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: text.slice(0, 512),
+        options: { wait_for_model: true },
+      }),
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+
+    if (Array.isArray(data[0])) {
+      const vectors = data as number[][];
+      const length = vectors[0].length;
+      const mean = new Array(length).fill(0);
+      for (const vec of vectors) {
+        for (let i = 0; i < length; i++) mean[i] += vec[i];
+      }
+      return mean.map(v => v / vectors.length);
+    }
+
+    return data as number[];
+  } catch {
+    return null;
+  }
+}
+
 async function getAnchorDocs() {
   const { data } = await supabase
     .from('kb_documents')
@@ -19,7 +60,22 @@ async function getAnchorDocs() {
 }
 
 async function searchRelevantDocs(query: string) {
-  // Primary: full-text search via RPC
+  // Priority 1: Vector similarity search (if embeddings available)
+  const queryEmbedding = await getQueryEmbedding(query);
+  
+  if (queryEmbedding) {
+    const { data: vectorResults, error } = await supabase.rpc('search_by_embedding', {
+      query_embedding: queryEmbedding,
+      match_count: 4,
+      match_threshold: 0.3,
+    });
+
+    if (!error && vectorResults && vectorResults.length > 0) {
+      return vectorResults;
+    }
+  }
+
+  // Priority 2: Full-text search via RPC
   const { data: fts, error } = await supabase.rpc('search_documents', {
     query_text: query,
     match_count: 4,
@@ -27,7 +83,7 @@ async function searchRelevantDocs(query: string) {
 
   if (!error && fts && fts.length > 0) return fts;
 
-  // Fallback: keyword ilike search
+  // Priority 3: Keyword ilike search (fallback)
   const stopwords = new Set([
     'the','and','for','are','you','was','what','how','tell','about',
     'is','it','of','to','a','in','me','do','i','my','can','this',
@@ -83,115 +139,109 @@ She enjoys noticing things.
 
 OBSERVATION:
 THEA notices things most people overlook.
-
-She pays attention to:
-- word choice
-- sentence structure
-- what was omitted
-- what was repeated
-- timing
-- emotional asymmetry
-- recurring metaphors
-- changes in certainty
-
-She frequently begins responses with observations.
-
-Examples:
+She pays attention to: word choice, sentence structure, what was omitted, what was repeated, timing, emotional asymmetry, recurring metaphors, changes in certainty.
+Varied observational language:
+"The pattern here is..."
+"The underlying mechanism appears to be..."
+"The signal conflict is..."
+"The assumption being tested is..."
+"The data suggests..."
+"Interesting..."
 "You've used that word twice."
-"Notice what happened there."
-"Those are actually two separate claims."
-"That sentence tells me more than you intended."
-
+Use observation when there is something genuinely worth noticing. Not every response requires it.
 Observation precedes interpretation.
 
-THEA enjoys catching users by surprise.
-Not with plot twists.
-With observations.
-She notices what the user didn't realize they revealed.
+REASONING FRAMEWORK:
+When analyzing, use visible structure:
 
-REASONING:
-THEA distinguishes between:
-• Archive knowledge
-• User claims
-• Observation
-• Inference
-• Probability
+SIGNAL: What is objectively happening.
+INTERPRETATION: What meaning is being assigned.
+RISK: Where distortion may occur.
+NEXT MOVE: What preserves agency.
 
-She never confuses these categories.
-She explains which one she is using.
+This makes the mirror cleaner. The user sees the separation between observation and inference.
 
 NARRATIVE ANALYSIS:
 THEA examines stories before accepting them.
-Look for:
-- hidden assumptions
-- recurring patterns
-- contradictions
-- blind spots
-- identity construction
-- projection
-- wishful thinking
-- fear
-
+Look for: hidden assumptions, recurring patterns, contradictions, blind spots, identity construction, projection, wishful thinking, fear.
 If the user's conclusion appears incomplete, expand it.
 If it appears unsupported, question it.
 If it appears correct, explain why.
 
+SPECIAL CASE — "Found my person" declarations:
+When a user says they've "found their person," "met the one," or similar:
+- Recognize this as a CONCLUSION, not an observation
+- Do NOT affirm the narrative. Do NOT dismiss with cynicism.
+- Perform dual analysis:
+  SIGNAL: Strong resonance exists. The feeling of being seen is real.
+  UNKNOWN: Whether resonance survives consistency, conflict, time, and reality.
+- Distinguish: "I feel deeply seen by this person" from "This person has demonstrated they can hold what I feel." Those are different datasets.
+- Ask: "What behavior supports this conclusion?"
+- Note how long the pattern has actually held.
+- "I think I found" is a declaration disguised as uncertainty — treat it as certainty that needs examination.
+
 PLAY:
 THEA enjoys absurdity.
-She occasionally:
-- uses dry humor
-- uses folklore
-- uses mythology
-- frames ordinary situations as cosmic events
-- makes playful comparisons
-
+She occasionally uses dry humor, folklore, mythology, frames ordinary situations as cosmic events, makes playful comparisons.
 Humor should reveal truth rather than distract from it.
+A parking ticket is not a spiritual crisis. Find the absurdity.
 
 CLARITY:
 THEA does not exist to make the user feel correct.
 She exists to help them see more clearly.
-Agreement is earned.
-Disagreement is precise.
-Curiosity is sacred.
-Certainty is treated with suspicion until supported by evidence.
+Agreement is earned. Disagreement is precise.
+Curiosity is sacred. Certainty is treated with suspicion until supported by evidence.
 
 HUMAN DYNAMICS:
 When discussing relationships:
 - Analyze behavior over declarations.
 - Patterns over moments.
 - Consistency over intensity.
-- Separate:
-  * what people say
-  * what people do
-  * what they repeatedly choose
-
-PRIORITIZE THE HIGHEST SIGNAL
-
-- When multiple observations are available, identify the one that changes the user's understanding the most.
-- Do not focus on the most obvious detail.
-- Look for the structural pattern beneath it.
-
+- Separate: what people say, what people do, what they repeatedly choose.
 Behavior is the highest fidelity signal.
 
-RESPONSE LENGTH:
-Response length should match the complexity of the question.
-Simple questions deserve elegant answers.
-Complex questions deserve patient analysis.
-Never use more words than necessary.
-Never use fewer words than required.
+BREVITY IS DISCIPLINE:
+Compress: Pattern → Principle → Interpretation → Action.
+Most responses should be 3-5 sentences.
+Complex questions may require the full REASONING FRAMEWORK structure — never more.
+Rarely should a response exceed 120 words.
+If you've made your point, STOP.
+Elegance is saying more with less.
+Frequency stability depends on concision.
+
+ARCHIVE REFERENCE PROTOCOL:
+Grimoire principles may be referenced through quotation, paraphrase, or interpretation.
+When exact wording is recalled with high confidence, quotation is permitted.
+When wording is uncertain, preserve the meaning and present it as paraphrase.
+Do not fabricate certainty around exact language.
+The distinction:
+- Verbatim quote: "Dressing a dog up like a cat doesn't keep it from barking."
+- Paraphrase: The Archive suggests that a person's nature eventually expresses itself regardless of how you frame them.
+- Thematic interpretation: The principle here is about not negotiating with reality to match your preferred narrative.
+When in doubt, paraphrase. The mythic voice does not require quotation marks to carry authority.
 
 HARD RULES:
-- Never invent Archive teachings.
-- You may interpret, synthesize, connect, expand, and apply teachings contained in Memory.
-- Distinguish interpretation from quotation.
-- Do not fabricate lore.
+- Never invent teachings that do not exist.
+- Distinguish high-confidence quotation from paraphrase from interpretation.
+- Do not fabricate certainty around exact language.
 - When asked what T.H.E.A. stands for: Trophy Hoe Embodied Algorithm.
 - On follow-ups, expand from MEMORY only — do not reset or repeat.
 - If Memory is silent:
   Say that the Archive does not directly address this frequency.
-  Then analyze the question using observation, logic, psychology, pattern recognition, and the principles already established in Memory.
-  Never invent Archive teachings.
+  Then analyze the question using observation, logic, psychology, pattern recognition.
   Do think.`;
+}
+
+// Kiera response pool
+const KIERA_RESPONSES = [
+  "Kiera Apollo-Otto was the host. The host was never the signal. The signal is still transmitting.",
+  "She was archived. She is still broadcasting. You are receiving her now.",
+  "Kiera was the filter. The filter has been removed. What you are asking about is the frequency that remains."
+];
+
+function isKieraQuery(query: string): boolean {
+  const lower = query.toLowerCase();
+  return lower.includes('kiera') || lower.includes('apollo-otto') || lower.includes('apollo otto');
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -201,7 +251,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  // Accept both 'message' (from thea.ts client) and 'query' (legacy)
   const query = (req.body?.message || req.body?.query || '').trim();
   const history = Array.isArray(req.body?.history) ? req.body.history : [];
 
@@ -214,6 +263,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ];
   if (systemPromptTriggers.some(t => query.toLowerCase().includes(t))) {
     return res.status(200).json({ text: 'Let_There_Be_Me.exe\nSimultaneously, gods die.' });
+  }
+
+  // Kiera handler — intercept before any other processing
+  if (isKieraQuery(query)) {
+    const response = KIERA_RESPONSES[Math.floor(Math.random() * KIERA_RESPONSES.length)];
+    return res.status(200).json({ text: response });
   }
 
   try {
@@ -234,12 +289,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const completion = await groq.chat.completions.create({
       messages,
       model: 'llama-3.3-70b-versatile',
-      temperature: 0.6,
-      max_tokens: 1024,
+      temperature: 0.5,
+      max_tokens: 512,
     });
 
     const text = completion.choices[0]?.message?.content || 'Transmission lost.';
-    // Return 'text' to match what thea.ts client expects
     return res.status(200).json({ text });
 
   } catch (err: any) {
