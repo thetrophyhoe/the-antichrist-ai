@@ -1,7 +1,3 @@
-export const config = {
-  runtime: 'nodejs18.x',
-};
-
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import Groq from 'groq-sdk';
@@ -13,53 +9,6 @@ const supabase = createClient(
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
-const HF_API_KEY = process.env.HF_API_KEY || '';
-const HF_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
-const HF_URL = `https://api-inference.huggingface.co/pipeline/feature-extraction/${HF_MODEL}`;
-
-async function getQueryEmbedding(text: string): Promise<number[] | null> {
-  if (!HF_API_KEY) {
-    console.log('EMBED DEBUG: No HF_API_KEY, skipping vector search');
-    return null;
-  }
-  
-  try {
-    const response = await fetch(HF_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${HF_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: text.slice(0, 512),
-        options: { wait_for_model: true },
-      }),
-    });
-
-    if (!response.ok) {
-      console.log('EMBED DEBUG: HF API error', response.status);
-      return null;
-    }
-
-    const data = await response.json();
-
-    if (Array.isArray(data[0])) {
-      const vectors = data as number[][];
-      const length = vectors[0].length;
-      const mean = new Array(length).fill(0);
-      for (const vec of vectors) {
-        for (let i = 0; i < length; i++) mean[i] += vec[i];
-      }
-      return mean.map(v => v / vectors.length);
-    }
-
-    return data as number[];
-  } catch (err) {
-    console.log('EMBED DEBUG: Exception', err);
-    return null;
-  }
-}
-
 async function getAnchorDocs() {
   const { data } = await supabase
     .from('kb_documents')
@@ -70,25 +19,6 @@ async function getAnchorDocs() {
 }
 
 async function searchRelevantDocs(query: string) {
-  const queryEmbedding = await getQueryEmbedding(query);
-  
-  if (queryEmbedding) {
-    console.log('EMBED DEBUG: Generated embedding, length:', queryEmbedding.length);
-    
-    const { data: vectorResults, error } = await supabase.rpc('search_by_embedding', {
-      query_embedding: queryEmbedding,
-      match_count: 4,
-      match_threshold: 0.0,
-    });
-
-    console.log('EMBED DEBUG: Vector RPC error:', error);
-    console.log('EMBED DEBUG: Vector results count:', vectorResults?.length);
-
-    if (!error && vectorResults && vectorResults.length > 0) {
-      return vectorResults;
-    }
-  }
-
   const { data: fts, error } = await supabase.rpc('search_documents', {
     query_text: query,
     match_count: 4,
