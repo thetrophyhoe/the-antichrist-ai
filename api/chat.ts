@@ -1,4 +1,6 @@
-export const config = { runtime: 'edge' };
+export const config = {
+  runtime: 'nodejs18.x',
+};
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
