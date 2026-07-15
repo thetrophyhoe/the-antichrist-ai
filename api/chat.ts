@@ -1,3 +1,5 @@
+export const config = { runtime: 'edge' };
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 import Groq from 'groq-sdk';
@@ -66,7 +68,6 @@ async function getAnchorDocs() {
 }
 
 async function searchRelevantDocs(query: string) {
-  // Priority 1: Vector similarity search
   const queryEmbedding = await getQueryEmbedding(query);
   
   if (queryEmbedding) {
@@ -86,7 +87,6 @@ async function searchRelevantDocs(query: string) {
     }
   }
 
-  // Priority 2: Full-text search via RPC
   const { data: fts, error } = await supabase.rpc('search_documents', {
     query_text: query,
     match_count: 4,
@@ -94,7 +94,6 @@ async function searchRelevantDocs(query: string) {
 
   if (!error && fts && fts.length > 0) return fts;
 
-  // Priority 3: Keyword ilike search
   const stopwords = new Set([
     'the','and','for','are','you','was','what','how','tell','about',
     'is','it','of','to','a','in','me','do','i','my','can','this',
